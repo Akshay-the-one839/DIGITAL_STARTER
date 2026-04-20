@@ -1,0 +1,102 @@
+>>> Warning 203 "3ph_digi_starter.c" Line 684(1,1): Condition always TRUE
+>>> Warning 203 "3ph_digi_starter.c" Line 862(1,1): Condition always TRUE
+>>> Warning 205 "3ph_digi_starter.c" Line 922(1,1): Unsigned variable is never less than zero
+>>> Warning 204 "3ph_digi_starter.c" Line 922(1,1): Condition always FALSE
+>>> Warning 203 "3ph_digi_starter.c" Line 933(1,1): Condition always TRUE
+>>> Warning 205 "3ph_digi_starter.c" Line 935(1,1): Unsigned variable is never less than zero
+>>> Warning 204 "3ph_digi_starter.c" Line 935(1,1): Condition always FALSE
+>>> Warning 205 "3ph_digi_starter.c" Line 1015(1,1): Unsigned variable is never less than zero
+>>> Warning 204 "3ph_digi_starter.c" Line 1015(1,1): Condition always FALSE
+>>> Warning 205 "3ph_digi_starter.c" Line 1081(1,1): Unsigned variable is never less than zero
+>>> Warning 204 "3ph_digi_starter.c" Line 1081(1,1): Condition always FALSE
+>>> Warning 205 "3ph_digi_starter.c" Line 1095(1,1): Unsigned variable is never less than zero
+>>> Warning 204 "3ph_digi_starter.c" Line 1095(1,1): Condition always FALSE
+>>> Warning 205 "3ph_digi_starter.c" Line 1170(1,1): Unsigned variable is never less than zero
+>>> Warning 204 "3ph_digi_starter.c" Line 1170(1,1): Condition always FALSE
+>>> Warning 203 "3ph_digi_starter.c" Line 1244(1,1): Condition always TRUE
+>>> Warning 205 "3ph_digi_starter.c" Line 1398(1,1): Unsigned variable is never less than zero
+>>> Warning 205 "3ph_digi_starter.c" Line 1399(1,1): Unsigned variable is never less than zero
+>>> Warning 205 "3ph_digi_starter.c" Line 1400(1,1): Unsigned variable is never less than zero
+>>> Warning 205 "3ph_digi_starter.c" Line 1467(1,1): Unsigned variable is never less than zero
+>>> Warning 204 "3ph_digi_starter.c" Line 1467(1,1): Condition always FALSE
+>>> Warning 203 "3ph_digi_starter.c" Line 1478(1,1): Condition always TRUE
+>>> Warning 205 "3ph_digi_starter.c" Line 1480(1,1): Unsigned variable is never less than zero
+>>> Warning 204 "3ph_digi_starter.c" Line 1480(1,1): Condition always FALSE
+>>> Warning 205 "3ph_digi_starter.c" Line 1560(1,1): Unsigned variable is never less than zero
+>>> Warning 204 "3ph_digi_starter.c" Line 1560(1,1): Condition always FALSE
+>>> Warning 205 "3ph_digi_starter.c" Line 1625(1,1): Unsigned variable is never less than zero
+>>> Warning 204 "3ph_digi_starter.c" Line 1625(1,1): Condition always FALSE
+>>> Warning 203 "3ph_digi_starter.c" Line 1636(1,1): Condition always TRUE
+>>> Warning 205 "3ph_digi_starter.c" Line 1638(1,1): Unsigned variable is never less than zero
+>>> Warning 204 "3ph_digi_starter.c" Line 1638(1,1): Condition always FALSE
+>>> Warning 205 "3ph_digi_starter.c" Line 1718(1,1): Unsigned variable is never less than zero
+>>> Warning 204 "3ph_digi_starter.c" Line 1718(1,1): Condition always FALSE
+>>> Warning 205 "3ph_digi_starter.c" Line 1783(1,1): Unsigned variable is never less than zero
+>>> Warning 204 "3ph_digi_starter.c" Line 1783(1,1): Condition always FALSE
+>>> Warning 203 "3ph_digi_starter.c" Line 1794(1,1): Condition always TRUE
+>>> Warning 205 "3ph_digi_starter.c" Line 1796(1,1): Unsigned variable is never less than zero
+>>> Warning 204 "3ph_digi_starter.c" Line 1796(1,1): Condition always FALSE
+>>> Warning 205 "3ph_digi_starter.c" Line 1872(1,1): Unsigned variable is never less than zero
+>>> Warning 204 "3ph_digi_starter.c" Line 1872(1,1): Condition always FALSE
+>>> Warning 205 "3ph_digi_starter.c" Line 1937(1,1): Unsigned variable is never less than zero
+>>> Warning 204 "3ph_digi_starter.c" Line 1937(1,1): Condition always FALSE
+>>> Warning 203 "3ph_digi_starter.c" Line 1948(1,1): Condition always TRUE
+>>> Warning 205 "3ph_digi_starter.c" Line 1950(1,1): Unsigned variable is never less than zero
+>>> Warning 204 "3ph_digi_starter.c" Line 1950(1,1): Condition always FALSE
+>>> Warning 205 "3ph_digi_starter.c" Line 2030(1,1): Unsigned variable is never less than zero
+>>> Warning 204 "3ph_digi_starter.c" Line 2030(1,1): Condition always FALSE
+>>> Warning 203 "3ph_digi_starter.c" Line 2103(1,1): Condition always TRUE
+>>> Warning 203 "3ph_digi_starter.c" Line 2182(1,1): Condition always TRUE
+>>> Warning 203 "3ph_digi_starter.c" Line 2313(1,1): Condition always TRUE
+>>> Warning 205 "3ph_digi_starter.c" Line 2409(1,1): Unsigned variable is never less than zero
+>>> Warning 204 "3ph_digi_starter.c" Line 2409(1,1): Condition always FALSE
+>>> Warning 203 "3ph_digi_starter.c" Line 2420(1,1): Condition always TRUE
+>>> Warning 203 "3ph_digi_starter.c" Line 2533(1,1): Condition always TRUE
+>>> Warning 203 "3ph_digi_starter.c" Line 2631(1,1): Condition always TRUE
+>>> Warning 203 "3ph_digi_starter.c" Line 2697(1,1): Condition always TRUE
+>>> Warning 203 "3ph_digi_starter.c" Line 3048(1,1): Condition always TRUE
+>>> Warning 203 "3ph_digi_starter.c" Line 3078(1,1): Condition always TRUE
+>>> Warning 203 "3ph_digi_starter.c" Line 3123(1,1): Condition always TRUE
+>>> Warning 203 "3ph_digi_starter.c" Line 3142(1,1): Condition always TRUE
+>>> Warning 202 "3ph_digi_starter.c" Line 39(6,18): Variable never used:   last_state_A
+>>> Warning 202 "3ph_digi_starter.c" Line 40(5,23): Variable never used:   encoder_last_state
+>>> Warning 202 "3ph_digi_starter.c" Line 57(6,11): Variable never used:   ramp1
+>>> Warning 202 "3ph_digi_starter.c" Line 57(17,22): Variable never used:   yamp1
+>>> Warning 202 "3ph_digi_starter.c" Line 57(28,33): Variable never used:   bamp1
+>>> Warning 202 "3ph_digi_starter.c" Line 58(6,11): Variable never used:   ramp2
+>>> Warning 202 "3ph_digi_starter.c" Line 58(17,22): Variable never used:   yamp2
+>>> Warning 202 "3ph_digi_starter.c" Line 58(28,33): Variable never used:   bamp2
+>>> Warning 202 "3ph_digi_starter.c" Line 63(5,15): Variable never used:   encoderPos
+>>> Warning 202 "3ph_digi_starter.c" Line 72(5,16): Variable never used:   juice_param
+>>> Warning 202 "3ph_digi_starter.c" Line 73(5,14): Variable never used:   digit_pos
+>>> Warning 202 "3ph_digi_starter.c" Line 74(5,12): Variable never used:   editing
+>>> Warning 202 "3ph_digi_starter.c" Line 120(6,14): Variable never used:   cy_timer
+>>> Warning 202 "3ph_digi_starter.c" Line 121(5,12): Variable never used:   dry_rst
+>>> Warning 202 "3ph_digi_starter.c" Line 130(6,9): Variable never used:   ryb
+>>> Warning 202 "3ph_digi_starter.c" Line 131(6,9): Variable never used:   rby
+>>> Warning 202 "3ph_digi_starter.c" Line 170(6,10): Variable never used:   temp
+>>> Warning 202 "3ph_digi_starter.c" Line 171(6,11): Variable never used:   temp3
+>>> Warning 202 "3ph_digi_starter.c" Line 172(6,22): Variable never used:   RX_Command_Ready
+>>> Warning 202 "3ph_digi_starter.c" Line 173(6,11): Variable never used:   index
+>>> Warning 202 "3ph_digi_starter.c" Line 174(6,14): Variable never used:   RxBuffer
+>>> Warning 202 "3ph_digi_starter.c" Line 175(6,15): Variable never used:   RxBuffer1
+>>> Warning 202 "3ph_digi_starter.c" Line 176(6,19): Variable never used:   RxBufferflag1
+>>> Warning 202 "3ph_digi_starter.c" Line 177(6,14): Variable never used:   Rxcyclic
+>>> Warning 202 "3ph_digi_starter.c" Line 178(6,18): Variable never used:   Rxcyclicflag
+>>> Warning 202 "3ph_digi_starter.c" Line 181(6,10): Variable never used:   setm
+>>> Warning 202 "3ph_digi_starter.c" Line 182(5,10): Variable never used:   flgst
+>>> Warning 202 "3ph_digi_starter.c" Line 183(6,9): Variable never used:   res
+>>> Warning 202 "3ph_digi_starter.c" Line 188(7,16): Variable never used:   off_delay
+>>> Warning 202 "3ph_digi_starter.c" Line 189(7,15): Variable never used:   pw_ondly
+>>> Warning 202 "3ph_digi_starter.c" Line 193(6,9): Variable never used:   t_c
+>>> Warning 202 "3ph_digi_starter.c" Line 195(5,14): Variable never used:   c_m_state
+>>> Warning 202 "3ph_digi_starter.c" Line 2167(21,31): Variable never used:   orig_on_hr
+>>> Warning 202 "3ph_digi_starter.c" Line 2168(21,32): Variable never used:   orig_on_min
+>>> Warning 202 "3ph_digi_starter.c" Line 2169(21,32): Variable never used:   orig_off_hr
+>>> Warning 202 "3ph_digi_starter.c" Line 2170(21,33): Variable never used:   orig_off_min
+>>> Warning 202 "3ph_digi_starter.c" Line 3114(9,18): Variable never used:   prog_prev
+>>> Warning 202 "3ph_digi_starter.c" Line 3115(9,26): Variable never used:   show_welcome_once
+>>> Warning 202 "3ph_digi_starter.c" Line 3116(9,17): Variable never used:   ct_ratio
+      Memory usage:   ROM=54%      RAM=19% - 24%
+      0 Errors,  99 Warnings.
+Build Successful.

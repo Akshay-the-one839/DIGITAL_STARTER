@@ -1,0 +1,3120 @@
+//LCD module connections
+#define LCD_DATA_PIN PIN_C3
+#define LCD_CLOCK_PIN PIN_C4
+#define LCD_EN_PIN PIN_B0
+//End LCD module connections
+#include <18F27Q42.h>
+#device ADC=12  // Q42 has 12-bit ADC
+#INCLUDE <stdlib.h>
+#include <string.h>
+#include <math.h> 
+#fuses RSTOSC_HFINTOSC_64MHZ, NOPROTECT, NOLVP, NOWDT, NOBROWNOUT
+
+#use delay(internal=64MHz) /* use clock frequency of 16 MHz for delays */
+
+#use delay(clock=20000000)
+#include <3WireLCD.c>
+
+
+#use fast_io (C)
+#use fast_io (B)
+
+// Programming mode keys
+#define key1 PIN_B3  // Select 2P / Increment/ON
+#define key2 PIN_B2  // Select 3P / Decrement/OFF
+#define ON PIN_B4
+#define OFF PIN_B5
+
+
+#define RLED PIN_C0
+#define YLED PIN_C1
+#define BLED PIN_B1
+ 
+
+// Rotary Encoder Pin Definitions
+#define ENCODER_A   PIN_C5
+#define ENCODER_B    PIN_A4
+#define ENCODER_SW    PIN_B6
+
+int8 last_state_A = 1;
+int encoder_last_state = 1;  // default for A input
+
+int16 handle_parameter_input(char* title, int16 value, int16 min, int16 max);
+int16 sd_delay=0;
+// Debug pin
+ 
+
+// Phase voltage and current variables
+int16 rvolt = 0, yvolt = 0, bvolt = 0;
+
+int8 rvolt1 = 0, yvolt1 = 0, bvolt1 = 0;
+int8 rvolt2 = 0, yvolt2 = 0, bvolt2 = 0;
+int8 rvolt3= 0, yvolt3 = 0, bvolt3 = 0;
+ 
+
+int16 ramp = 0, yamp = 0, bamp = 0;
+
+int8 ramp1 = 0, yamp1 = 0, bamp1 = 0;
+int8 ramp2 = 0, yamp2 = 0, bamp2 = 0;
+
+int16 delay_time1=0;
+ 
+
+int encoderPos = 0; 
+int prog = 0;  // 0=Normal, 1=Menu Mode
+int8 phase_setting = 0;  // 0=2P, 1=3P
+int8 trip_status = 0; // 0 = OK, 1 = TRIP
+
+// Juice Control variables
+int16 hv_value = 0;
+int16 lv_value = 0;
+int16 ol_value = 0;
+int juice_param = 0;  // 0=HV, 1=LV, 2=OL
+int digit_pos = 0;   // 0=hundreds, 1=tens, 2=units
+int editing = 0;
+
+// Smart Navigation Variables
+#define MAX_MENU_INDEX 15
+int menu_number = 1;  
+int8 in_menu_selection = 1; 
+
+static int8 encoder_blocked = 0;
+
+char* menu_titles[] = {
+   "",
+   "1.PHASE SETTING",
+   "2.JUICE CONTROL",       
+   "3.POWER ON DELAY",
+   "4.STAR DELTA DLY",
+   "5.VOLT SETTING",    
+   "6.DRY RUN DELAY",      
+   "7.DRYRUN RESTART",      
+   "8.DRYRUN TRIP",         
+   "9.SET ON TIME",         
+   "10.CYCLIC TIMER",      
+   "11.AUTO START",         
+   "12.UNBALANCED TRP",    
+   "13.CT TYPE",           
+   "14.PI TEST",           
+   "15.EXIT TO MAIN"        
+};
+ 
+
+#priority  int_RDA,INT_AD, INT_TIMER1
+///// new
+#define SCALE_FACTOR 95.3
+#define THRESHOLD 560   // 12-bit scale (140 * 4 = 560)
+
+#define PHASE_R 0  // AN0
+#define PHASE_Y 1  // AN1
+#define PHASE_B 2  // AN2
+
+
+int8 phase;
+int8 cy_timer;
+int dry_rst=0;
+int8 sec_counter = 0;
+int16 adc_values[6] = {0,0,0,4095,4095,4095};  // 12-bit max
+int16 voltages[3] = {0};
+float currents[3] = {0};
+int update_flag = 0;
+int channel = 0;
+int wait = 0;
+float temp_amp=0;
+char ryb[]="123";
+char rby[]="132";
+
+// Phase Sequence Detection
+int16 last_val[3] = {150, 150, 150};
+int1 crossed[3] = {0, 0, 0};
+int8 sequence[3] = {0};
+int8 seq_index = 0;
+int8 ryb_detected = 0;
+int1 seq_flag=0;
+
+
+int16 drys=0;
+int16 drya=0;
+int16 aut = 0;
+int8  state=0;  
+int8 on_state=0;
+int8 volt_level= 0;
+int8 amps_level= 0;
+unsigned long int dry_s=0;
+int8 auto_state=0;
+unsigned long int auto_start_s=0;
+unsigned long int dry_reset_s=0;
+int16 old_value[3]={0};
+int8 now=0;
+int8 t_state=0;
+//////////////////////////// Dry Run////////////////////////////////////////////
+float currentr = 0;
+float currentr2 = 0;
+float currentr3 = 0;
+int16 vr=0;
+int16 vy=0;
+int16 vb=0;
+long int vr1 = 0;
+long int vy1 = 0;
+long int vb1 = 0;
+char b[4];
+unsigned long int onstate=0;
+char q='a';
+int i=0;
+char temp;
+char temp3;
+int8 RX_Command_Ready = 0; 
+int8 Index = 0;     
+char RxBuffer[60];
+char RxBuffer1[60];
+int1 RxBufferflag1 =0;
+char Rxcyclic[93];
+int1 Rxcyclicflag =0;
+int8 sentflg=0;
+int8 sentflg2=0;
+int1 setm=0;
+int flgst=0;
+int8 res=0;
+int1 ckflg=0;
+ int16 h_voltr,h_volty,h_voltb,l_voltr,l_volty,l_voltb,over_cr,over_cy,over_cb=0;
+ int dly=0;
+ int16 on_delay=0;
+ int8 off_delay=0;
+ int8 pw_ondly=0;
+
+int8 cyclic_time[10][2] = {0}; 
+int8 time_h=14,time_m=41,time_s=51;
+int8 t_c,t_h,t_m,t_s=0;
+int c_cycle=0;
+int c_m_state=0;
+int s_c=0;
+int16 dry_restart_val = 90; // default
+
+int8 cyclic_state =0;
+int setsw=0;
+int time_en=0;
+int time_en2=0;
+
+int h_time,m_time,s_time;
+int1  seqok=0;
+
+// Smart Navigation Function declarations
+void show_menu_selection(void);
+void handle_menu_navigation(void);
+void advance_to_next_menu(void);
+
+ ////////////////////////////////////////////////////////////////
+ // === ADC INTERRUPT ===
+#int_AD
+void adc_isr() 
+{
+   int16 adc_sample=read_adc(ADC_READ_ONLY);
+   if(channel<=2&&adc_sample>adc_values[channel])
+   {
+      adc_values[channel]=adc_sample;
+      } else if(channel>2&&adc_sample<adc_values[channel]){
+      adc_values[channel]=adc_sample;
+   }
+   //Zero-cross detection(only for voltage channels)
+   if(channel<=2&&(last_val[channel]>THRESHOLD)&&(adc_sample<=THRESHOLD))
+   {
+      if(!crossed[channel])
+      {
+         crossed[channel]=1;
+         if(seq_index<3)
+            sequence[seq_index++]=channel;
+      }
+   }
+   if(channel<=2)
+      last_val[channel]=adc_sample;
+   //Next logical channel
+   if(wait==0)
+   {
+      switch(channel)
+      {
+         case 0: channel=1;break;
+         case 1: channel=2;break;
+         case 2: channel=0;break;
+      }
+      } else {
+      switch(channel)
+      {
+         case 0: channel=1;break;
+         case 1: channel=2;break;
+         case 2: channel=3;break;
+         case 3: channel=4;break;
+         case 4: channel=5;break;
+         case 5: channel=0;break;
+      }
+   }
+   if(channel==5)
+      set_adc_channel(14);
+      else
+      set_adc_channel(channel);
+      
+      read_adc(ADC_START_ONLY);
+}
+
+/////////////////////////////////CT ///////////////////////////////////////////
+#int_TIMER1
+void timer1_isr() 
+{
+   sec_counter++;
+   if(h_time != 0 || m_time != 0 || s_time != 0) {
+      time_en++;
+
+      if(time_en >= 20) {
+         time_en = 0;
+
+         if(s_time > 0) {
+            s_time--;
+         } else {
+            s_time = 59;
+
+            if(m_time > 0) {
+               m_time--;
+            } else {
+               m_time = 59;
+
+               if(h_time > 0) {
+                  h_time--;
+               } else {
+                  time_h = 0;
+                  time_m = 0;
+                  time_s = 0;
+               }
+            }
+         }
+      }
+   }
+   
+   
+   time_en2++;
+      if(time_en2 >= 20) {
+         time_en2 = 0;
+
+         if(dly < 59) {
+            dly++;
+         }
+      }
+   
+   if(dry_s!=0){
+                 dry_s++;}
+   
+   if(auto_state==0&&aut==1)
+      auto_start_s++;
+   
+   if(dry_reset_s!=0)
+      dry_reset_s++;
+      
+   if(sec_counter>=10*5)
+   {
+      update_flag=1;
+      sec_counter=0;
+   }
+   if(dry_s>drys*10)
+   {
+      amps_level=1;
+   }
+   if(auto_start_s >= 60*10 && auto_state==0)
+   {
+      if(aut==1)
+      {
+         state=1;
+         auto_state=1;
+         auto_start_s=0;
+      }
+   }
+ if(dry_reset_s > (unsigned long)dry_restart_val * 15)
+   {
+      amps_level=0;
+   }
+   
+   set_timer1(34286);
+}
+
+
+ void mon()
+ {
+    output_high(OFF);
+    output_low(ON);
+    for(int i = 0; i< on_delay;i++){
+    delay_ms(990);
+    }
+    onstate=1;
+    output_high(ON);
+    q='A';
+ }
+ void moff()
+ {
+      output_high(ON);
+      output_low(OFF);
+      delay_ms(1000);
+      delay_ms(1000);
+      delay_ms(1000);
+      delay_ms(1000);
+      onstate=0;
+      q='a';
+    if(amps_level==1)
+    {
+       return;
+    }
+    
+    output_high(OFF);
+ }
+ ///////////////////////////////////////////////////////////////
+ void change()
+ {
+    vr=(voltages[0] < 50 )?0:voltages[0];
+    vy=(voltages[1] < 50 )?0:voltages[1];
+    vb=(voltages[2] < 50 )?0:voltages[2];
+    currentr=currents[2];
+    currentr2=currents[1];
+    currentr3=currents[0];
+    vr1=(long int)vr;
+    vy1=(long int)vy;
+    vb1=(long int)vb;
+ }
+ void voltage()
+ {
+
+if(phase){
+     if((vr < l_voltr && vy<l_volty))
+    {
+       volt_level=1;
+       }else if(vr> h_voltr ||vy> h_volty){
+       volt_level=2;
+    }else{
+    if((volt_level == 1 || volt_level==2) && (auto_state==1 && aut==1) ){
+    auto_state =0;
+    auto_start_s=0;
+    state =0;
+    }
+    volt_level=0;
+    }
+ } 
+ 
+ else{
+             if(vr< l_voltr ||vy< l_volty ||vb< l_voltb)
+    {
+       volt_level=1;
+       }else if(vr> h_voltr ||vy> h_volty ||vb> h_voltb ){
+       volt_level=2;
+    }else{
+    if((volt_level == 1 || volt_level==2) && (auto_state==1 && aut==1) ){
+    auto_state =0;
+    auto_start_s=0;
+     state =0;
+    }
+    volt_level=0;
+    }
+   }
+
+}
+  
+ void amps()
+ {  
+ 
+ if(phase){
+    if(currentr < drya && currentr2 < drya )
+    {
+       if(dry_s==0&&amps_level==0&&on_state==1)
+       {
+          dry_s=1;
+          dry_reset_s=1;
+       }
+       }else if(currentr > over_cr || currentr2 > over_cy ){
+       amps_level=2;
+       }else{
+       if(amps_level==0){
+          dry_s=0;
+          dry_reset_s =0;
+       }
+       if(amps_level==2  && sentflg ==1)
+       amps_level = 0;
+    }
+ }
+ 
+else{
+
+ if(currentr < drya && currentr2 < drya && currentr3 < drya)
+    {
+       if(dry_s==0&&amps_level==0&&on_state==1)
+       {
+          dry_s=1;
+          dry_reset_s=1;
+       }
+       }else if(currentr > over_cr && currentr2 > over_cy && currentr3 > over_cb ){
+       amps_level=2;
+       }else{
+       if(amps_level==0){
+          dry_s=0;
+          dry_reset_s =0;
+       }
+       if(amps_level==2 && sentflg ==1 )
+          amps_level = 0;
+    }
+ 
+ }
+ }
+ int new_value()
+ {
+    if(update_flag)
+    {
+       update_flag=0;
+       for(int i=0;i<3;i++)
+       {
+         float v_adc = adc_values[i] * 4.98 / 4095.0;   // 12-bit = 4095 max
+          voltages[i]=(int16)(v_adc*SCALE_FACTOR);
+          adc_values[i]=0;
+       }
+       
+       for(i=3;i<6;i++)
+       {
+         float adc_voltage = adc_values[i] * 5.0 / 4095.0;
+          currents[i-3] = (adc_voltage / 0.059) * 0.64;
+          adc_values[i]=1023;
+       }
+       change();
+       return 0;
+    }
+    
+    return 1;
+ }
+ 
+ 
+ // === Show Phase Sequence ===
+void display_sequence() {
+      
+    if (seq_index == 3) {
+        if (sequence[0] == PHASE_R && sequence[1] == PHASE_Y && sequence[2] == PHASE_B) {
+             delay_ms(10);
+             seq_flag =0;
+        } else if (sequence[0] == PHASE_R && sequence[1] == PHASE_B && sequence[2] == PHASE_Y) {
+            ryb_detected++;
+            seq_flag =1;
+            delay_ms(10);
+        } else if (sequence[0] == PHASE_Y && sequence[1] == PHASE_R && sequence[2] == PHASE_B) {
+            ryb_detected++;
+            seq_flag =1;
+            delay_ms(10);
+        } else {
+            delay_ms(10);
+        }
+    } else {
+        delay_ms(10);
+    }
+}
+
+
+
+void cyclic_mode(){
+
+if(cyclic_state==1 && volt_level==0 && amps_level==0 ){
+
+
+if(c_cycle != 0){
+
+if( h_time == 0 && m_time ==0 && c_cycle <= 10){
+             if(c_cycle < 10)
+             {
+             c_cycle++;
+             }else{c_cycle =0;return;}
+             h_time =  cyclic_time[c_cycle-1][0];
+             m_time =  cyclic_time[c_cycle -1][1];
+             s_time=59;
+             s_c=1;
+             if(h_time !=0 || m_time != 0){
+             if ((c_cycle-1) % 2 ==0){
+             state=1;
+             }else{
+             state=0;
+             }
+             }
+}
+else {
+   if(t_h != h_time || t_m != m_time || t_s != s_time){
+     t_h = h_time;
+      t_m = m_time;
+      t_s = s_time;
+        write_eeprom(0, c_cycle);
+         write_eeprom(1, h_time);
+          write_eeprom(2, m_time);
+            write_eeprom(3, s_time);
+   }
+
+     if ((c_cycle-1) % 2 == 0 ){
+     if(state != 1){
+             state=1;
+        }
+             }else{
+                 if(state != 0){
+             state=0;
+        }
+             }
+}
+}else{
+             h_time = cyclic_time[0][0];
+             m_time = cyclic_time[0][1];
+              s_time=59;
+             s_c=1;
+             c_cycle=1;
+             state=1;
+}
+
+}
+
+}
+
+//////////////////////////////////Menu/////////////////////////////////////////
+
+ 
+long extract_num(char *src, int pos, int len) {
+    char b[8];
+    memcpy(b, &src[pos], len);
+    b[len] = '\0';
+    return atol(b);
+}
+void reset_sequence() {
+    crossed[0] = 0;
+    crossed[1] = 0;
+    crossed[2] = 0;
+    seq_index = 0;
+}
+///////////////////////////////////////////////////////////////////////////////
+void advance_to_next_menu(void) {
+   menu_number++;
+   if (menu_number > MAX_MENU_INDEX) {
+      menu_number = 1;
+   }
+   in_menu_selection = 1;
+}
+
+void show_menu_selection(void) {
+   static int8 last_displayed_menu = 255;  
+   
+   if (menu_number != last_displayed_menu) {
+      lcd_cmd(LCD_CLEAR);   
+      
+      lcd_goto(1, 1);
+      printf(lcd_out, "%s", menu_titles[menu_number]);
+      
+       lcd_goto(1, 2);
+      if (menu_number == MAX_MENU_INDEX) {
+         printf(lcd_out, "Press to EXIT");
+      } else {
+         printf(lcd_out, "Press to ENTER");
+      }
+      
+      last_displayed_menu = menu_number;
+   }
+}
+
+void handle_menu_navigation(void) {
+   while (in_menu_selection) {
+      show_menu_selection();
+      
+      if (input(ENCODER_A) == 0 && input(ENCODER_B) != 0) {
+         delay_ms(5);
+         menu_number++;
+         if (menu_number > MAX_MENU_INDEX) menu_number = 1;
+         while (input(ENCODER_A) == 0);
+      }
+      else if (input(ENCODER_B) == 0 && input(ENCODER_A) != 0) {
+         delay_ms(5);
+         if (menu_number == 1) 
+            menu_number = MAX_MENU_INDEX;
+         else 
+            menu_number--;
+         while (input(ENCODER_B) == 0);
+      }
+      
+      if (input(ENCODER_SW) == 0) {
+         delay_ms(20);
+         if (input(ENCODER_SW) == 0) {
+            while (input(ENCODER_SW) == 0) {
+               delay_ms(10);
+            }
+            
+            if (menu_number == MAX_MENU_INDEX) {
+               prog = 0;
+               in_menu_selection = 0;
+               lcd_cmd(LCD_CLEAR);  
+               lcd_goto(1, 1);  
+               printf(lcd_out, "EXITING MENU...");
+               delay_ms(1000);
+                lcd_cmd(LCD_CLEAR); 
+               return;
+            } else {
+               in_menu_selection = 0;
+               return;
+            }
+         }
+      }
+      
+      delay_ms(1);
+   }
+}
+
+
+// ==================== MENU FUNCTIONS ====================
+
+void handle_phase_menu(void) {
+   while (input(ENCODER_SW) == 0);
+   lcd_cmd(LCD_CLEAR);  
+   lcd_goto(1, 1);  
+   printf(lcd_out, "1.PHASE SETTING");
+   
+   int8 selected_phase = read_eeprom(0x00);
+   int8 original_phase = selected_phase;
+   int8 last_displayed = 255;
+   
+   lcd_goto(1, 2);  
+   if (selected_phase == 0)
+      printf(lcd_out, ">> 2 PHASE        ");
+   else
+      printf(lcd_out, ">> 3 PHASE        ");
+   
+   while (1) {
+      if (input(ENCODER_A) == 0 && input(ENCODER_B) != 0) {
+         delay_ms(5);
+         selected_phase = (selected_phase + 1) % 2;
+         while (input(ENCODER_A) == 0);
+      }
+      else if (input(ENCODER_B) == 0 && input(ENCODER_A) != 0) {
+         delay_ms(5);
+         selected_phase = (selected_phase == 0) ? 1 : 0;
+         while (input(ENCODER_B) == 0);
+      }
+      
+      if (selected_phase != last_displayed) {
+         lcd_goto(1, 2); 
+         if (selected_phase == 0)
+            printf(lcd_out, ">> 2 PHASE        ");
+         else
+            printf(lcd_out, ">> 3 PHASE        ");
+         last_displayed = selected_phase;
+      }
+      
+      if (input(ENCODER_SW) == 0) {
+         delay_ms(20);
+         if (input(ENCODER_SW) == 0) {
+            if (selected_phase != original_phase) {
+               write_eeprom(0x00, selected_phase);
+               lcd_cmd(LCD_CLEAR);  
+               lcd_goto(1, 1);  
+               printf(lcd_out, "PHASE SAVED");
+               lcd_goto(1, 2);  
+               if (selected_phase == 0)
+               {
+                  printf(lcd_out, "2 PHASE");
+                  phase=selected_phase;
+               }
+               else{
+                  printf(lcd_out, "3 PHASE");
+                  phase=selected_phase;
+               }
+               while (input(ENCODER_SW) == 0);
+               // ===== CHANGED: Show Press ENTER instead of delay =====
+               lcd_goto(1, 2);
+               printf(lcd_out, "Press ENTER     ");
+               while(input(ENCODER_SW) == 1);
+               delay_ms(20);
+               while(input(ENCODER_SW) == 0);
+               delay_ms(50);
+               // ===== END CHANGE =====
+               phase_setting = selected_phase;
+               advance_to_next_menu();
+            }
+            else {
+               while (input(ENCODER_SW) == 0);
+               // ===== CHANGED: Show No Change + Press ENTER =====
+               lcd_cmd(LCD_CLEAR);
+               lcd_goto(1, 1);
+               printf(lcd_out, "No Change");
+               lcd_goto(1, 2);
+               printf(lcd_out, "Press ENTER");
+               while(input(ENCODER_SW) == 1);
+               delay_ms(20);
+               while(input(ENCODER_SW) == 0);
+               delay_ms(50);
+               // ===== END CHANGE =====
+               advance_to_next_menu();
+            }
+            break;
+         }
+      }
+      delay_ms(1);
+   }
+}
+
+int16 handle_parameter_input(char* title, int16 value, int16 min, int16 max) { 
+   int16 last_value = 65535;
+   int8 increment_mode = 1;
+   int8 last_mode = -1;
+   
+   while (TRUE) {
+      if (value > max) value = max;
+      if (value < min) value = min;
+      
+      if (input(key1) == 0) {
+         delay_ms(50);
+         if (increment_mode == 1) increment_mode = 10;
+         else if (increment_mode == 10) increment_mode = 100;
+         else increment_mode = 1;
+         last_mode = -1;
+         int8 timeout = 50;
+         while (input(key1) == 0 && timeout > 0) {
+            delay_ms(10);
+            timeout--;
+         }
+      }
+      if (input(key2) == 0) {
+         delay_ms(50);
+         increment_mode = 1;
+         last_mode = -1;
+         int8 timeout = 50;
+         while (input(key2) == 0 && timeout > 0) {
+            delay_ms(10);
+            timeout--;
+         }
+      }
+      
+      if (input(ENCODER_A) == 0 && input(ENCODER_B) != 0) {
+         delay_ms(5);
+         if (value <= (max - increment_mode)) {
+            value += increment_mode;
+         } else if (value < max) {
+            value = max;
+         }
+         delay_ms(40);
+         while (input(ENCODER_A) == 0);
+      }
+      else if (input(ENCODER_B) == 0 && input(ENCODER_A) != 0) {
+         delay_ms(5);
+         if (value >= (min + increment_mode)) {
+            value -= increment_mode;
+         } else if (value > min) {
+            value = min;
+         }
+         delay_ms(40);
+         while (input(ENCODER_B) == 0);
+      }
+      
+      if (value != last_value || increment_mode != last_mode) {
+         lcd_cmd(LCD_CLEAR);  
+         delay_ms(50);
+         
+         lcd_goto(1, 1); 
+         if (increment_mode == 1) {
+            printf(lcd_out, "%s NRM", title);
+         }
+         else if (increment_mode == 10) {
+            printf(lcd_out, "%s FST", title);
+         }
+         else {
+            printf(lcd_out, "%s SUF", title);
+         }
+         
+         lcd_goto(1, 2); 
+         printf(lcd_out, ">> %ld", (long)value);
+         
+         last_value = value;
+         last_mode = increment_mode;
+      }
+      
+      if (!input(ENCODER_SW)) {
+         delay_ms(50);
+         while (!input(ENCODER_SW));
+         break;
+         }
+          delay_ms(5);
+   }
+   return value;
+}
+
+void handle_juice_menu(void) {
+
+   while (input(ENCODER_SW) == 0);
+   
+   int8 juice_enable = read_eeprom(0x03);
+   if (juice_enable != 0 && juice_enable != 1) {
+      juice_enable = 1;
+   }
+   int8 last_juice = 255;
+
+   lcd_cmd(LCD_CLEAR);
+   lcd_goto(1, 1);
+   printf(lcd_out, "2.JUICE CONTROL");
+
+   lcd_goto(1, 2);
+   if (juice_enable == 1)
+      printf(lcd_out, ">> ENABLE        ");
+   else
+      printf(lcd_out, ">> DISABLE       ");
+
+   while (1) {
+
+      if (input(ENCODER_A) == 0 && input(ENCODER_B) != 0) {
+         delay_ms(5);
+         juice_enable = (juice_enable == 1) ? 0 : 1;
+         while (input(ENCODER_A) == 0);
+      }
+      else if (input(ENCODER_B) == 0 && input(ENCODER_A) != 0) {
+         delay_ms(5);
+         juice_enable = (juice_enable == 1) ? 0 : 1;
+         while (input(ENCODER_B) == 0);
+      }
+
+      if (juice_enable != last_juice) {
+         lcd_goto(1, 2);
+         if (juice_enable == 1)
+            printf(lcd_out, ">> ENABLE        ");
+         else
+            printf(lcd_out, ">> DISABLE       ");
+         last_juice = juice_enable;
+      }
+
+      if (input(ENCODER_SW) == 0) {
+         delay_ms(20);
+         if (input(ENCODER_SW) == 0) {
+         
+            write_eeprom(0x03, juice_enable);
+            
+            lcd_cmd(LCD_CLEAR);
+            lcd_goto(1, 1);
+            printf(lcd_out, "JUICE CTRL SAVED");
+            lcd_goto(1, 2);
+            if (juice_enable == 1)
+               printf(lcd_out, "STATUS: ENABLE  ");
+            else
+               printf(lcd_out, "STATUS: DISABLE ");
+               
+            while (input(ENCODER_SW) == 0);
+            // ===== CHANGED: Press ENTER to proceed =====
+            lcd_goto(1, 2);
+            printf(lcd_out, "Press ENTER     ");
+            while(input(ENCODER_SW) == 1);
+            delay_ms(20);
+            while(input(ENCODER_SW) == 0);
+            delay_ms(50);
+            // ===== END CHANGE =====
+            lcd_cmd(LCD_CLEAR);
+            advance_to_next_menu();
+            break;
+         }
+      }
+      delay_ms(1);
+   }
+}
+
+void handle_power_on_delay(void) {
+   while (input(ENCODER_SW) == 0);
+   
+   int16 delay_time = make16(read_eeprom(0x11), read_eeprom(0x10));
+   if (delay_time > 999) delay_time = 999;
+   if (delay_time < 0)   delay_time = 0;
+   
+   int16 original_delay = delay_time;
+   int8 increment_mode = 1;
+   int16 last_value = -1;
+   int8 last_mode = -1;
+   int1 button_pressed_flag = 0;
+   
+   lcd_cmd(LCD_CLEAR);
+   delay_ms(100);
+   
+   while (1) {
+      if (delay_time > 999) delay_time = 999;
+      if (delay_time < 0) delay_time = 0;
+      
+      if (delay_time != last_value || increment_mode != last_mode) {
+         lcd_cmd(LCD_CLEAR);
+         lcd_goto(1, 1);   
+         if (increment_mode == 1) {
+            printf(lcd_out, "3.PWR DLY NORM");
+         }
+         else if (increment_mode == 10) {
+            printf(lcd_out, "3.PWR DLY FAST");
+         }
+         else {
+            printf(lcd_out, "3.PWR DLY SUFA");
+         }
+         
+         lcd_goto(1, 2); 
+         printf(lcd_out, "   %ld sec   ", (long)delay_time);
+         
+         last_value = delay_time;
+         last_mode = increment_mode;
+         delay_ms(50);
+      }
+      
+      if (input(key1) == 0) {
+         delay_ms(50);
+         if (increment_mode == 1) increment_mode = 10;
+         else if (increment_mode == 10) increment_mode = 100;
+         else increment_mode = 1;
+         last_mode = -1;
+         int8 timeout = 50;
+         while (input(key1) == 0 && timeout > 0) {
+            delay_ms(10);
+            timeout--;
+         }
+      }
+      
+      if (input(key2) == 0) {
+         delay_ms(50);
+         increment_mode = 1;
+         last_mode = -1;
+         int8 timeout = 50;
+         while (input(key2) == 0 && timeout > 0) {
+            delay_ms(10);
+            timeout--;
+         }
+      }
+      
+      if (input(ENCODER_A) == 0 && input(ENCODER_B) != 0 && !encoder_blocked) {
+         delay_ms(5);
+         if (delay_time <= (999 - increment_mode)) {
+            delay_time += increment_mode;
+            encoder_blocked = 0;
+         } else {
+            encoder_blocked = 1;
+         }
+         delay_ms(40);
+         while (input(ENCODER_A) == 0);
+      }
+      else if (input(ENCODER_B) == 0 && input(ENCODER_A) != 0 && !encoder_blocked) {
+         delay_ms(5);
+         if (delay_time >= increment_mode) {
+            delay_time -= increment_mode;
+            encoder_blocked = 0;
+         } else {
+            encoder_blocked = 1;
+         }
+         delay_ms(40);
+         while (input(ENCODER_B) == 0);
+      }
+      if (input(ENCODER_A) == 1 && input(ENCODER_B) == 1) {
+         encoder_blocked = 0;
+      }
+
+      if (input(ENCODER_SW) == 0 && button_pressed_flag == 0) {
+         delay_ms(20);
+         if (input(ENCODER_SW) == 0) {
+            button_pressed_flag = 1;
+            
+            if (delay_time != original_delay) {
+               if (delay_time > 999) delay_time = 999;
+               if (delay_time < 0) delay_time = 0;
+               
+               write_eeprom(0x10, make8(delay_time, 0));
+               write_eeprom(0x11, make8(delay_time, 1));
+               
+               lcd_cmd(LCD_CLEAR);
+               lcd_goto(1, 1);   
+               printf(lcd_out, "DELAY SAVED!");
+               lcd_goto(1, 2); 
+               printf(lcd_out, "   %ld sec   ", (long)delay_time);
+               delay_time1 = delay_time; 
+               
+               while (input(ENCODER_SW) == 0) {
+                  delay_ms(10);
+               }
+               // ===== CHANGED: Press ENTER to proceed =====
+               lcd_goto(1, 2);
+               printf(lcd_out, "Press ENTER     ");
+               while(input(ENCODER_SW) == 1);
+               delay_ms(20);
+               while(input(ENCODER_SW) == 0);
+               delay_ms(50);
+               // ===== END CHANGE =====
+               advance_to_next_menu();
+            }
+            else {
+               while (input(ENCODER_SW) == 0) {
+                  delay_ms(10);
+               }
+               // ===== CHANGED: No Change + Press ENTER =====
+               lcd_cmd(LCD_CLEAR);
+               lcd_goto(1, 1);
+               printf(lcd_out, "No Change");
+               lcd_goto(1, 2);
+               printf(lcd_out, "Press ENTER");
+               while(input(ENCODER_SW) == 1);
+               delay_ms(20);
+               while(input(ENCODER_SW) == 0);
+               delay_ms(50);
+               // ===== END CHANGE =====
+               advance_to_next_menu();
+            }
+            
+            lcd_cmd(LCD_CLEAR); 
+            delay_ms(100);
+            break;
+         }
+         else {
+            button_pressed_flag = 0;
+         }
+      }
+      
+      if (input(ENCODER_SW) != 0) {
+         button_pressed_flag = 0;
+      }
+      
+      delay_ms(1);
+   }
+}
+
+void handle_star_delta_delay() {
+   delay_ms(50);
+   while (input(ENCODER_SW) == 0);
+   
+   sd_delay = make16(read_eeprom(0x15), read_eeprom(0x14));
+   if (sd_delay > 60) sd_delay = 60;
+   if (sd_delay < 0)  sd_delay = 0;
+   
+   int16 original_delay = sd_delay;
+   on_delay = (int8)sd_delay;
+   int8 increment_mode = 1;
+   int16 last_value = -1;
+   int8 last_mode = -1;
+   int1 button_pressed_flag = 0;
+   
+   lcd_cmd(LCD_CLEAR); 
+   delay_ms(100);
+   
+   while (true) {
+      if (sd_delay > 60) sd_delay = 60;
+      if (sd_delay < 0) sd_delay = 0;
+      
+      if (sd_delay != last_value || increment_mode != last_mode) {
+         lcd_cmd(LCD_CLEAR);
+         lcd_goto(1, 1);   
+         if (increment_mode == 1) {
+            printf(lcd_out, "4.STAR DELT NRM");
+         }
+         else {
+            printf(lcd_out, "4.STAR DELT FST");
+         }
+         
+         lcd_goto(1, 2);  
+         printf(lcd_out, "   %ld sec   ", (long)sd_delay);
+         
+         last_value = sd_delay;
+         last_mode = increment_mode;
+         delay_ms(50);
+      }
+      
+      if (input(key1) == 0) {
+         delay_ms(50);
+         increment_mode = (increment_mode == 1) ? 10 : 1;
+         last_mode = -1;
+         int8 timeout = 50;
+         while (input(key1) == 0 && timeout > 0) {
+            delay_ms(10);
+            timeout--;
+         }
+      }
+      
+      if (input(KEY2) == 0) {
+         delay_ms(50);
+         increment_mode = 1;
+         last_mode = -1;
+         int8 timeout = 50;
+         while (input(key2) == 0 && timeout > 0) {
+            delay_ms(10);
+            timeout--;
+         }
+      }
+      
+      if (input(ENCODER_A) == 0 && input(ENCODER_B) != 0 && !encoder_blocked) {
+         delay_ms(5);
+         if (sd_delay <= (60 - increment_mode)) {
+            sd_delay += increment_mode;
+            encoder_blocked = 0;
+         } else {
+            encoder_blocked = 1;
+         }
+         delay_ms(40);
+         while (input(ENCODER_A) == 0);
+      }
+      else if (input(ENCODER_B) == 0 && input(ENCODER_A) != 0 && !encoder_blocked) {
+         delay_ms(5);
+         if (sd_delay >= increment_mode) {
+            sd_delay -= increment_mode;
+            encoder_blocked = 0;
+         } else {
+            encoder_blocked = 1;
+         }
+         delay_ms(40);
+         while (input(ENCODER_B) == 0);
+      }
+      if (input(ENCODER_A) == 1 && input(ENCODER_B) == 1) {
+         encoder_blocked = 0;
+      }
+      
+      if (input(ENCODER_SW) == 0 && button_pressed_flag == 0) {
+         delay_ms(20);
+         if (input(ENCODER_SW) == 0) {
+            button_pressed_flag = 1;
+            
+            if (sd_delay != original_delay) {
+               if (sd_delay > 60) sd_delay = 60;
+               if (sd_delay < 0) sd_delay = 0;
+               
+               write_eeprom(0x14, make8(sd_delay, 0));
+               write_eeprom(0x15, make8(sd_delay, 1));
+               
+               lcd_cmd(LCD_CLEAR);
+               lcd_goto(1, 1);   
+               printf(lcd_out, " DELAY SAVED! ");
+               lcd_goto(1, 2); 
+               printf(lcd_out, "   %ld sec   ", (long)sd_delay);
+               
+               while (input(ENCODER_SW) == 0) {
+                  delay_ms(10);
+               }
+               // ===== CHANGED: Press ENTER to proceed =====
+               lcd_goto(1, 2);
+               printf(lcd_out, "Press ENTER     ");
+               while(input(ENCODER_SW) == 1);
+               delay_ms(20);
+               while(input(ENCODER_SW) == 0);
+               delay_ms(50);
+               // ===== END CHANGE =====
+               advance_to_next_menu();
+            }
+            else {
+               while (input(ENCODER_SW) == 0) {
+                  delay_ms(10);
+               }
+               // ===== CHANGED: No Change + Press ENTER =====
+               lcd_cmd(LCD_CLEAR);
+               lcd_goto(1, 1);
+               printf(lcd_out, "No Change");
+               lcd_goto(1, 2);
+               printf(lcd_out, "Press ENTER");
+               while(input(ENCODER_SW) == 1);
+               delay_ms(20);
+               while(input(ENCODER_SW) == 0);
+               delay_ms(50);
+               // ===== END CHANGE =====
+               advance_to_next_menu();
+            }
+            
+            lcd_cmd(LCD_CLEAR);   
+            delay_ms(100);
+            break;
+         }
+         else {
+            button_pressed_flag = 0;
+         }
+      }
+      
+      if (input(ENCODER_SW) != 0) {
+         button_pressed_flag = 0;
+      }
+      
+      delay_ms(1);
+   }
+}
+
+void handle_voltage_setting(void) {
+   while (input(ENCODER_SW) == 0);
+   
+   char lbl_lv_r[] = "LV R:";
+   char lbl_lv_y[] = "LV Y:";
+   char lbl_lv_b[] = "LV B:";
+   char lbl_hv_r[] = "HV R:";
+   char lbl_hv_y[] = "HV Y:";
+   char lbl_hv_b[] = "HV B:";
+   char lbl_ol_r[] = "OL R:";
+   char lbl_ol_y[] = "OL Y:";
+   char lbl_ol_b[] = "OL B:";
+   
+   int16 lv_r = make16(read_eeprom(0x05), read_eeprom(0x04));
+   int16 lv_y = make16(read_eeprom(0x09), read_eeprom(0x08));
+   int16 lv_b = make16(read_eeprom(0x47), read_eeprom(0x46));
+   
+   int16 hv_r = make16(read_eeprom(0x0B), read_eeprom(0x0A));
+   int16 hv_y = make16(read_eeprom(0x0D), read_eeprom(0x0C));
+   int16 hv_b = make16(read_eeprom(0x0F), read_eeprom(0x0E));
+   
+   int16 ol_r = make16(read_eeprom(0x41), read_eeprom(0x40));
+   int16 ol_y = make16(read_eeprom(0x43), read_eeprom(0x42));
+   int16 ol_b = make16(read_eeprom(0x45), read_eeprom(0x44));
+   
+   if(lv_r > 400 || lv_r < 100) lv_r = 200;
+   if(lv_y > 400 || lv_y < 100) lv_y = 200;
+   if(lv_b > 400 || lv_b < 100) lv_b = 200;
+   
+   if(hv_r > 600 || hv_r < 250) hv_r = 480;
+   if(hv_y > 600 || hv_y < 250) hv_y = 480;
+   if(hv_b > 600 || hv_b < 250) hv_b = 480;
+   
+   if(ol_r > 300 || ol_r < 0) ol_r = 30;
+   if(ol_y > 300 || ol_y < 0) ol_y = 30;
+   if(ol_b > 300 || ol_b < 0) ol_b = 30;
+
+   lcd_cmd(LCD_CLEAR);
+   lcd_goto(1, 1);
+   printf(lcd_out, "LOW VOLT SET");
+   delay_ms(800);
+   
+   lv_r = handle_parameter_input(lbl_lv_r, lv_r, 100, 400);
+   lv_y = handle_parameter_input(lbl_lv_y, lv_y, 100, 400);
+   lv_b = handle_parameter_input(lbl_lv_b, lv_b, 100, 400);
+   
+   write_eeprom(0x04, make8(lv_r, 0));
+   write_eeprom(0x05, make8(lv_r, 1));
+   write_eeprom(0x08, make8(lv_y, 0));
+   write_eeprom(0x09, make8(lv_y, 1));
+   write_eeprom(0x46, make8(lv_b, 0));
+   write_eeprom(0x47, make8(lv_b, 1));
+   
+   lcd_cmd(LCD_CLEAR);
+   lcd_goto(1, 1);
+   printf(lcd_out, "LOW VOLT SAVED");
+   lcd_goto(1, 2);
+   printf(lcd_out, "%lu :%lu :%lu", (long)lv_r, (long)lv_y, (long)lv_b);
+   while(input(ENCODER_SW) == 1);
+   delay_ms(20);
+   while(input(ENCODER_SW) == 0);
+   delay_ms(50);
+
+   lcd_cmd(LCD_CLEAR);
+   lcd_goto(1, 1);
+   printf(lcd_out, "HIGH VOLT SET");
+   delay_ms(800);
+   
+   hv_r = handle_parameter_input(lbl_hv_r, hv_r, 250, 600);
+   hv_y = handle_parameter_input(lbl_hv_y, hv_y, 250, 600);
+   hv_b = handle_parameter_input(lbl_hv_b, hv_b, 250, 600);
+   
+   write_eeprom(0x0A, make8(hv_r, 0));
+   write_eeprom(0x0B, make8(hv_r, 1));
+   write_eeprom(0x0C, make8(hv_y, 0));
+   write_eeprom(0x0D, make8(hv_y, 1));
+   write_eeprom(0x0E, make8(hv_b, 0));
+   write_eeprom(0x0F, make8(hv_b, 1));
+   
+   lcd_cmd(LCD_CLEAR);
+   lcd_goto(1, 1);
+   printf(lcd_out, "HIGH VOLT SAVED");
+   lcd_goto(1, 2);
+   printf(lcd_out, "%lu :%lu :%lu", (long)hv_r, (long)hv_y, (long)hv_b);
+   while(input(ENCODER_SW) == 1);
+   delay_ms(20);
+   while(input(ENCODER_SW) == 0);
+   delay_ms(50);
+
+   lcd_cmd(LCD_CLEAR);
+   lcd_goto(1, 1);
+   printf(lcd_out, "OVERLOAD SET");
+   delay_ms(800);
+   
+   ol_r = handle_parameter_input(lbl_ol_r, ol_r, 0, 300);
+   ol_y = handle_parameter_input(lbl_ol_y, ol_y, 0, 300);
+   ol_b = handle_parameter_input(lbl_ol_b, ol_b, 0, 300);
+   
+   write_eeprom(0x40, make8(ol_r, 0));
+   write_eeprom(0x41, make8(ol_r, 1));
+   write_eeprom(0x42, make8(ol_y, 0));
+   write_eeprom(0x43, make8(ol_y, 1));
+   write_eeprom(0x44, make8(ol_b, 0));
+   write_eeprom(0x45, make8(ol_b, 1));
+   
+   lcd_cmd(LCD_CLEAR);
+   lcd_goto(1, 1);
+   printf(lcd_out, "OL SAVED");
+   lcd_goto(1, 2);
+   printf(lcd_out, "%lu :%lu :%lu", (long)ol_r, (long)ol_y, (long)ol_b);
+   while(input(ENCODER_SW) == 1);
+   delay_ms(20);
+   while(input(ENCODER_SW) == 0);
+   delay_ms(50);
+   
+   l_voltr = lv_r;
+   l_volty = lv_y;
+   l_voltb = lv_b;
+   h_voltr = hv_r;
+   h_volty = hv_y;
+   h_voltb = hv_b;
+   over_cr = ol_r;
+   over_cy = ol_y;
+   over_cb = ol_b;
+   
+   lcd_cmd(LCD_CLEAR);
+   delay_ms(100);
+   advance_to_next_menu();
+}
+
+void handle_dryrun_delay() {
+   delay_ms(50);
+   while (input(ENCODER_SW) == 0);
+   
+   int16 dryrun_delay = make16(read_eeprom(0x18), read_eeprom(0x17));
+   if (dryrun_delay > 999) dryrun_delay = 999;
+   if (dryrun_delay < 0)   dryrun_delay = 0;
+   
+   int16 original_delay = dryrun_delay;
+   int8 increment_mode = 1;
+   int16 last_value = -1;
+   int8 last_mode = -1;
+   int1 button_pressed_flag = 0;
+   
+   lcd_cmd(LCD_CLEAR);   
+   delay_ms(100);
+   
+   while (1) {
+      if (dryrun_delay > 999) dryrun_delay = 999;
+      if (dryrun_delay < 0) dryrun_delay = 0;
+      
+      if (dryrun_delay != last_value || increment_mode != last_mode) {
+         lcd_cmd(LCD_CLEAR);
+         lcd_goto(1, 1);   
+         if (increment_mode == 1) {
+            printf(lcd_out, "5.DRYRUN DLY NORM");
+         }
+         else if (increment_mode == 10) {
+            printf(lcd_out, "5.DRYRUN DLY FAST");
+         }
+         else {
+            printf(lcd_out, "5.DRYRUN DLY SUFA");
+         }
+         
+         lcd_goto(1, 2);   
+         printf(lcd_out, "   %ld sec   ", (long)dryrun_delay);
+         
+         last_value = dryrun_delay;
+         last_mode = increment_mode;
+         delay_ms(50);
+      }
+      
+      if (input(key1) == 0) {
+         delay_ms(50);
+         if (increment_mode == 1) increment_mode = 10;
+         else if (increment_mode == 10) increment_mode = 100;
+         else increment_mode = 1;
+         last_mode = -1;
+         int8 timeout = 50;
+         while (input(key1) == 0 && timeout > 0) {
+            delay_ms(10);
+            timeout--;
+         }
+      }
+      
+      if (input(key2) == 0) {
+         delay_ms(50);
+         increment_mode = 1;
+         last_mode = -1;
+         int8 timeout = 50;
+         while (input(key2) == 0 && timeout > 0) {
+            delay_ms(10);
+            timeout--;
+         }
+      }
+      
+      if (input(ENCODER_A) == 0 && input(ENCODER_B) != 0 && !encoder_blocked) { 
+         delay_ms(5);
+         if (dryrun_delay <= (999 - increment_mode)) {
+            dryrun_delay += increment_mode;
+            encoder_blocked = 0; 
+         } else {
+            encoder_blocked = 1;
+         }
+         delay_ms(40);
+         while (input(ENCODER_A) == 0);
+      }
+      else if (input(ENCODER_B) == 0 && input(ENCODER_A) != 0 && !encoder_blocked) { 
+         delay_ms(5);
+         if (dryrun_delay >= increment_mode) {
+            dryrun_delay -= increment_mode;
+            encoder_blocked = 0;
+         } else {
+            encoder_blocked = 1;
+         }
+         delay_ms(40);
+         while (input(ENCODER_B) == 0);
+      }
+      if (input(ENCODER_A) == 1 && input(ENCODER_B) == 1) {
+         encoder_blocked = 0;
+      }
+      
+      if (input(ENCODER_SW) == 0 && button_pressed_flag == 0) {
+         delay_ms(20);
+         if (input(ENCODER_SW) == 0) {
+            button_pressed_flag = 1;
+            
+            if (dryrun_delay != original_delay) {
+               if (dryrun_delay > 999) dryrun_delay = 999;
+               if (dryrun_delay < 0) dryrun_delay = 0;
+               
+               write_eeprom(0x17, make8(dryrun_delay, 0));
+               write_eeprom(0x18, make8(dryrun_delay, 1));
+               
+               lcd_cmd(LCD_CLEAR);
+               lcd_goto(1, 1); 
+               printf(lcd_out, " DELAY SAVED!");
+               lcd_goto(1, 2); 
+               printf(lcd_out, "   %ld sec   ", (long)dryrun_delay);
+               
+               while (input(ENCODER_SW) == 0) {
+                  delay_ms(10);
+               }
+               // ===== CHANGED: Press ENTER to proceed =====
+               lcd_goto(1, 2);
+               printf(lcd_out, "Press ENTER     ");
+               while(input(ENCODER_SW) == 1);
+               delay_ms(20);
+               while(input(ENCODER_SW) == 0);
+               delay_ms(50);
+               // ===== END CHANGE =====
+               advance_to_next_menu();
+            }
+            else {
+               while (input(ENCODER_SW) == 0) {
+                  delay_ms(10);
+               }
+               // ===== CHANGED: No Change + Press ENTER =====
+               lcd_cmd(LCD_CLEAR);
+               lcd_goto(1, 1);
+               printf(lcd_out, "No Change");
+               lcd_goto(1, 2);
+               printf(lcd_out, "Press ENTER");
+               while(input(ENCODER_SW) == 1);
+               delay_ms(20);
+               while(input(ENCODER_SW) == 0);
+               delay_ms(50);
+               // ===== END CHANGE =====
+               advance_to_next_menu();
+            }
+            
+            lcd_cmd(LCD_CLEAR);
+            delay_ms(100);
+            break;
+         }
+         else {
+            button_pressed_flag = 0;
+         }
+      }
+      
+      if (input(ENCODER_SW) != 0) {
+         button_pressed_flag = 0;
+      }
+      
+      delay_ms(1);
+   }
+}
+
+void handle_dryrun_restart() {
+   delay_ms(50);
+   while (input(ENCODER_SW) == 0);
+   
+   int16 restart_delay = make16(read_eeprom(0x1B), read_eeprom(0x1A));
+   if (restart_delay > 999) restart_delay = 999;
+   if (restart_delay < 0)   restart_delay = 0;
+   
+   int16 original_delay = restart_delay;
+   int8 increment_mode = 1;
+   int16 last_value = -1;
+   int8 last_mode = -1;
+   int1 button_pressed_flag = 0;
+   
+   lcd_cmd(LCD_CLEAR); 
+   delay_ms(100);
+   
+   while (1) {
+      if (restart_delay > 999) restart_delay = 999;
+      if (restart_delay < 0) restart_delay = 0;
+      
+      if (restart_delay != last_value || increment_mode != last_mode) {
+         lcd_cmd(LCD_CLEAR);
+         lcd_goto(1, 1); 
+         if (increment_mode == 1) {
+            printf(lcd_out, "6.DRYRUN RST NORM");
+         }
+         else if (increment_mode == 10) {
+            printf(lcd_out, "6.DRYRUN RST FAST");
+         }
+         else {
+            printf(lcd_out, "6.DRYRUN RST SUFA");
+         }
+         
+         lcd_goto(1, 2); 
+         printf(lcd_out, "   %ld sec   ", (long)restart_delay);
+         
+         last_value = restart_delay;
+         last_mode = increment_mode;
+         delay_ms(50);
+      }
+      
+      if (input(KEY1) == 0) {
+         delay_ms(50);
+         if (increment_mode == 1) increment_mode = 10;
+         else if (increment_mode == 10) increment_mode = 100;
+         else increment_mode = 1;
+         last_mode = -1;
+         int8 timeout = 50;
+         while (input(key1) == 0 && timeout > 0) {
+            delay_ms(10);
+            timeout--;
+         }
+      }
+      
+      if (input(KEY2) == 0) {
+         delay_ms(50);
+         increment_mode = 1;
+         last_mode = -1;
+         int8 timeout = 50;
+         while (input(key2) == 0 && timeout > 0) {
+            delay_ms(10);
+            timeout--;
+         }  
+      }
+      
+      if (input(ENCODER_A) == 0 && input(ENCODER_B) != 0 && !encoder_blocked) { 
+         delay_ms(5);
+         if (restart_delay <= (999 - increment_mode)) {
+            restart_delay += increment_mode;
+            encoder_blocked = 0;
+         } else {
+            encoder_blocked = 1;
+         }
+         delay_ms(40);
+         while (input(ENCODER_A) == 0);
+      }
+      else if (input(ENCODER_B) == 0 && input(ENCODER_A) != 0 && !encoder_blocked) { 
+         delay_ms(5);
+         if (restart_delay >= increment_mode) {
+            restart_delay -= increment_mode;
+            encoder_blocked = 0;
+         } else {
+            encoder_blocked = 1;
+         }
+         delay_ms(40);
+         while (input(ENCODER_B) == 0);
+      }
+      if (input(ENCODER_A) == 1 && input(ENCODER_B) == 1) {
+         encoder_blocked = 0;
+      }
+      
+      if (input(ENCODER_SW) == 0 && button_pressed_flag == 0) {
+         delay_ms(20);
+         if (input(ENCODER_SW) == 0) {
+            button_pressed_flag = 1;
+            
+            if (restart_delay != original_delay) {
+               if (restart_delay > 999) restart_delay = 999;
+               if (restart_delay < 0) restart_delay = 0;
+               
+               write_eeprom(0x1A, make8(restart_delay, 0));
+               write_eeprom(0x1B, make8(restart_delay, 1));
+               
+               lcd_cmd(LCD_CLEAR);
+               lcd_goto(1, 1); 
+               printf(lcd_out, " DELAY SAVED!   ");
+               lcd_goto(1, 2); 
+               printf(lcd_out, "   %ld sec   ", (long)restart_delay);
+               
+               while (input(ENCODER_SW) == 0) {
+                  delay_ms(10);
+               }
+               // ===== CHANGED: Press ENTER to proceed =====
+               lcd_goto(1, 2);
+               printf(lcd_out, "Press ENTER     ");
+               while(input(ENCODER_SW) == 1);
+               delay_ms(20);
+               while(input(ENCODER_SW) == 0);
+               delay_ms(50);
+               // ===== END CHANGE =====
+               advance_to_next_menu();
+            }
+            else {
+               while (input(ENCODER_SW) == 0) {
+                  delay_ms(10);
+               }
+               // ===== CHANGED: No Change + Press ENTER =====
+               lcd_cmd(LCD_CLEAR);
+               lcd_goto(1, 1);
+               printf(lcd_out, "No Change");
+               lcd_goto(1, 2);
+               printf(lcd_out, "Press ENTER");
+               while(input(ENCODER_SW) == 1);
+               delay_ms(20);
+               while(input(ENCODER_SW) == 0);
+               delay_ms(50);
+               // ===== END CHANGE =====
+               advance_to_next_menu();
+            }
+            
+            lcd_cmd(LCD_CLEAR); 
+            delay_ms(100);
+            break;
+         }
+         else {
+            button_pressed_flag = 0;
+         }
+      }
+      
+      if (input(ENCODER_SW) != 0) {
+         button_pressed_flag = 0;
+      }
+      
+      delay_ms(1);
+   }  
+}
+
+void handle_dryrun_trip() {
+   delay_ms(50);
+   while (input(ENCODER_SW) == 0);
+   
+   int16 trip_current = make16(read_eeprom(0x1E), read_eeprom(0x1D));
+   if (trip_current > 100) trip_current = 100;
+   if (trip_current < 0)   trip_current = 0;
+   
+   int16 original_current = trip_current;
+   int8 increment_mode = 1;
+   int16 last_value = -1;
+   int8 last_mode = -1;
+   int1 button_pressed_flag = 0;
+   
+   lcd_cmd(LCD_CLEAR); 
+   delay_ms(100);
+   
+   while (1) {
+      if (trip_current > 100) trip_current = 100;
+      if (trip_current < 0) trip_current = 0;
+      
+      if (trip_current != last_value || increment_mode != last_mode) {
+         lcd_cmd(LCD_CLEAR);
+         lcd_goto(1, 1); 
+         if (increment_mode == 1) {
+            printf(lcd_out, "7.DRYRUN TRP NRM");
+         }
+         else {
+            printf(lcd_out, "7.DRYRUN TRP FST");
+         }
+         
+         lcd_goto(1, 2); 
+         printf(lcd_out, "   %ld Amps   ", (long)trip_current);
+         
+         last_value = trip_current;
+         last_mode = increment_mode;
+         delay_ms(50);
+      }
+      
+      if (input(KEY1) == 0) {
+         delay_ms(50);
+         increment_mode = (increment_mode == 1) ? 10 : 1;
+         last_mode = -1;
+         int8 timeout = 50;
+         while (input(key1) == 0 && timeout > 0) {
+            delay_ms(10);
+            timeout--;
+         }
+      }     
+      
+      if (input(KEY2) == 0) {
+         delay_ms(50);
+         increment_mode = 1;
+         last_mode = -1;
+         int8 timeout = 50;
+         while (input(key2) == 0 && timeout > 0) {
+            delay_ms(10);
+            timeout--;
+         }
+      }
+      
+      if (input(ENCODER_A) == 0 && input(ENCODER_B) != 0 && !encoder_blocked) { 
+         delay_ms(5);
+         if (trip_current <= (100 - increment_mode)) {
+            trip_current += increment_mode;
+            encoder_blocked = 0;
+         } else {
+            encoder_blocked = 1;
+         }
+         delay_ms(40);
+         while (input(ENCODER_A) == 0);
+      }
+      else if (input(ENCODER_B) == 0 && input(ENCODER_A) != 0 && !encoder_blocked) { 
+         delay_ms(5);
+         if (trip_current >= increment_mode) {
+            trip_current -= increment_mode;
+            encoder_blocked = 0;
+         } else {
+            encoder_blocked = 1;
+         }
+         delay_ms(40);
+         while (input(ENCODER_B) == 0);
+      }
+      if (input(ENCODER_A) == 1 && input(ENCODER_B) == 1) {
+         encoder_blocked = 0;
+      }
+      
+      // ===== BUG FIXED: Moved encoder switch press outside encoder_blocked if block =====
+      if (input(ENCODER_SW) == 0 && button_pressed_flag == 0) {
+         delay_ms(20);
+         if (input(ENCODER_SW) == 0) {
+            button_pressed_flag = 1;
+            
+            if (trip_current != original_current) {
+               if (trip_current > 100) trip_current = 100;
+               if (trip_current < 0) trip_current = 0;
+               
+               write_eeprom(0x1D, make8(trip_current, 0));
+               write_eeprom(0x1E, make8(trip_current, 1));
+               
+               lcd_cmd(LCD_CLEAR);
+               lcd_goto(1, 1); 
+               printf(lcd_out, " VALUE SAVED!  ");
+               lcd_goto(1, 2); 
+               printf(lcd_out, " %ld Amps   ", (long)trip_current);
+               
+               while (input(ENCODER_SW) == 0) {
+                  delay_ms(10);
+               }
+               // ===== CHANGED: Press ENTER to proceed =====
+               lcd_goto(1, 2);
+               printf(lcd_out, "Press ENTER     ");
+               while(input(ENCODER_SW) == 1);
+               delay_ms(20);
+               while(input(ENCODER_SW) == 0);
+               delay_ms(50);
+               // ===== END CHANGE =====
+               advance_to_next_menu();
+            }
+            else {
+               while (input(ENCODER_SW) == 0) {
+                  delay_ms(10);
+               }
+               // ===== CHANGED: No Change + Press ENTER =====
+               lcd_cmd(LCD_CLEAR);
+               lcd_goto(1, 1);
+               printf(lcd_out, "No Change");
+               lcd_goto(1, 2);
+               printf(lcd_out, "Press ENTER");
+               while(input(ENCODER_SW) == 1);
+               delay_ms(20);
+               while(input(ENCODER_SW) == 0);
+               delay_ms(50);
+               // ===== END CHANGE =====
+               advance_to_next_menu();
+            }
+            
+            lcd_cmd(LCD_CLEAR); 
+            delay_ms(100);
+            break;
+         }
+         else {
+            button_pressed_flag = 0;
+         }
+      }
+      
+      if (input(ENCODER_SW) != 0) {
+         button_pressed_flag = 0;
+      }
+      
+      delay_ms(1);
+   }
+}
+
+void handle_set_on_time() {
+   delay_ms(50);
+   while (input(ENCODER_SW) == 0);
+   
+   int16 on_time = make16(read_eeprom(0x49), read_eeprom(0x48));
+   if (on_time > 999) on_time = 999;
+   if (on_time < 0)   on_time = 0;
+   
+   int16 original_time = on_time;
+   int8 increment_mode = 1;
+   int16 last_value = -1;
+   int8 last_mode = -1;
+   int1 button_pressed_flag = 0;
+   
+   lcd_cmd(LCD_CLEAR);
+   delay_ms(100);
+   
+   while (1) {
+      if (on_time > 999) on_time = 999;
+      if (on_time < 0)   on_time = 0;
+      
+      if (on_time != last_value || increment_mode != last_mode) {
+         lcd_cmd(LCD_CLEAR);
+         lcd_goto(1, 1);
+         if (increment_mode == 1) {
+            printf(lcd_out, "9.SET ON TIME NRM");
+         }
+         else if (increment_mode == 10) {
+            printf(lcd_out, "9.SET ON TIME FST");
+         }
+         else {
+            printf(lcd_out, "9.SET ON TIME SUF");
+         }
+         
+         lcd_goto(1, 2);
+         printf(lcd_out, "   %ld sec   ", (long)on_time);
+         
+         last_value = on_time;
+         last_mode = increment_mode;
+         delay_ms(50);
+      }
+      
+      if (input(KEY1) == 0) {
+         delay_ms(50);
+         if (increment_mode == 1) increment_mode = 10;
+         else if (increment_mode == 10) increment_mode = 100;
+         else increment_mode = 1;
+         last_mode = -1;
+         int8 timeout = 50;
+         while (input(key1) == 0 && timeout > 0) {
+            delay_ms(10);
+            timeout--;
+         }
+      }
+      
+      if (input(KEY2) == 0) {
+         delay_ms(50);
+         increment_mode = 1;
+         last_mode = -1;
+         int8 timeout = 50;
+         while (input(key2) == 0 && timeout > 0) {
+            delay_ms(10);
+            timeout--;
+         }
+      }
+      
+      if (input(ENCODER_A) == 0 && input(ENCODER_B) != 0 && !encoder_blocked) {
+         delay_ms(5);
+         if (on_time <= (999 - increment_mode)) {
+            on_time += increment_mode;
+            encoder_blocked = 0;
+         } else {
+            encoder_blocked = 1;
+         }
+         delay_ms(40);
+         while (input(ENCODER_A) == 0);
+      }
+      else if (input(ENCODER_B) == 0 && input(ENCODER_A) != 0 && !encoder_blocked) {
+         delay_ms(5);
+         if (on_time >= increment_mode) {
+            on_time -= increment_mode;
+            encoder_blocked = 0;
+         } else {
+            encoder_blocked = 1;
+         }
+         delay_ms(40);
+         while (input(ENCODER_B) == 0);
+      }
+      if (input(ENCODER_A) == 1 && input(ENCODER_B) == 1) {
+         encoder_blocked = 0;
+      }
+      
+      if (input(ENCODER_SW) == 0 && button_pressed_flag == 0) {
+         delay_ms(20);
+         if (input(ENCODER_SW) == 0) {
+            button_pressed_flag = 1;
+            
+            if (on_time != original_time) {
+               if (on_time > 999) on_time = 999;
+               if (on_time < 0)   on_time = 0;
+               
+               write_eeprom(0x48, make8(on_time, 0));
+               write_eeprom(0x49, make8(on_time, 1));
+               
+               lcd_cmd(LCD_CLEAR);
+               lcd_goto(1, 1);
+               printf(lcd_out, " TIME SAVED!   ");
+               lcd_goto(1, 2);
+               printf(lcd_out, "   %ld sec   ", (long)on_time);
+               
+               while (input(ENCODER_SW) == 0) {
+                  delay_ms(10);
+               }
+               lcd_goto(1, 2);
+               printf(lcd_out, "Press ENTER     ");
+               while(input(ENCODER_SW) == 1);
+               delay_ms(20);
+               while(input(ENCODER_SW) == 0);
+               delay_ms(50);
+               advance_to_next_menu();
+            }
+            else {
+               while (input(ENCODER_SW) == 0) {
+                  delay_ms(10);
+               }
+               lcd_cmd(LCD_CLEAR);
+               lcd_goto(1, 1);
+               printf(lcd_out, "No Change");
+               lcd_goto(1, 2);
+               printf(lcd_out, "Press ENTER");
+               while(input(ENCODER_SW) == 1);
+               delay_ms(20);
+               while(input(ENCODER_SW) == 0);
+               delay_ms(50);
+               advance_to_next_menu();
+            }
+            
+            lcd_cmd(LCD_CLEAR);
+            delay_ms(100);
+            break;
+         }
+         else {
+            button_pressed_flag = 0;
+         }
+      }
+      
+      if (input(ENCODER_SW) != 0) {
+         button_pressed_flag = 0;
+      }
+      
+      delay_ms(1);
+   }
+}
+
+void handle_cyclic_timer(void) {
+   while (input(ENCODER_SW) == 0);
+   
+   int8 eeprom_base[] = {0x20, 0x24, 0x28, 0x2C, 0x30};
+   int8 t;
+   
+   for(t = 0; t < 5; t++) {
+   
+      lcd_cmd(LCD_CLEAR);
+      lcd_goto(1, 1);
+      printf(lcd_out, "CYCLIC TIMER %d", t+1);
+      lcd_goto(1, 2);
+      printf(lcd_out, "Press to ENTER");
+      
+      while(input(ENCODER_SW) == 1);
+      delay_ms(20);
+      while(input(ENCODER_SW) == 0);
+      delay_ms(50);
+      
+      int8 base = eeprom_base[t];
+      
+      int8 on_hr  = read_eeprom(base + 0);
+      int8 on_min = read_eeprom(base + 1);
+      int8 off_hr = read_eeprom(base + 2);
+      int8 off_min= read_eeprom(base + 3);
+      
+      if(on_hr  > 23) on_hr  = 0;
+      if(on_min > 59) on_min = 0;
+      if(off_hr > 23) off_hr = 0;
+      if(off_min> 59) off_min= 0;
+      
+      int8 orig_on_hr  = on_hr;
+      int8 orig_on_min = on_min;
+      int8 orig_off_hr = off_hr;
+      int8 orig_off_min= off_min;
+      
+      int8 field = 0;
+      int8 last_field   = 255;
+      int8 last_on_hr   = 255;
+      int8 last_on_min  = 255;
+      int8 last_off_hr  = 255;
+      int8 last_off_min = 255;
+      int1 button_pressed_flag = 0;
+      
+      lcd_cmd(LCD_CLEAR);
+      
+      while(1) {
+      
+         if(field != last_field || on_hr != last_on_hr || 
+            on_min != last_on_min || off_hr != last_off_hr || 
+            off_min != last_off_min) {
+            
+            lcd_goto(1, 1);
+            printf(lcd_out, "ON :");
+            if(field == 0) printf(lcd_out, "[%02u]", on_hr);
+            else           printf(lcd_out, " %02u ", on_hr);
+            printf(lcd_out, ":");
+            if(field == 1) printf(lcd_out, "[%02u] ", on_min);
+            else           printf(lcd_out, " %02u  ", on_min);
+            
+            lcd_goto(1, 2);
+            printf(lcd_out, "OFF:");
+            if(field == 2) printf(lcd_out, "[%02u]", off_hr);
+            else           printf(lcd_out, " %02u ", off_hr);
+            printf(lcd_out, ":");
+            if(field == 3) printf(lcd_out, "[%02u] ", off_min);
+            else           printf(lcd_out, " %02u  ", off_min);
+            
+            last_field   = field;
+            last_on_hr   = on_hr;
+            last_on_min  = on_min;
+            last_off_hr  = off_hr;
+            last_off_min = off_min;
+         }
+         
+         if(input(ENCODER_A) == 0 && input(ENCODER_B) != 0) {
+            delay_ms(5);
+            switch(field) {
+               case 0: if(on_hr  < 23) on_hr++;  break;
+               case 1: if(on_min < 59) on_min++; break;
+               case 2: if(off_hr < 23) off_hr++; break;
+               case 3: if(off_min< 59) off_min++;break;
+            }
+            while(input(ENCODER_A) == 0);
+            delay_ms(30);
+         }
+         else if(input(ENCODER_B) == 0 && input(ENCODER_A) != 0) {
+            delay_ms(5);
+            switch(field) {
+               case 0: if(on_hr  > 0) on_hr--;  break;
+               case 1: if(on_min > 0) on_min--; break;
+               case 2: if(off_hr > 0) off_hr--; break;
+               case 3: if(off_min> 0) off_min--;break;
+            }
+            while(input(ENCODER_B) == 0);
+            delay_ms(30);
+         }
+         
+         if(input(KEY1) == 0) {
+            delay_ms(30);
+            field = (field + 1) % 4;
+            int8 timeout = 50;
+            while(input(KEY1) == 0 && timeout > 0) {
+               delay_ms(10);
+               timeout--;
+            }
+         }
+         
+         if(input(ENCODER_SW) == 0 && button_pressed_flag == 0) {
+            delay_ms(20);
+            if(input(ENCODER_SW) == 0) {
+               button_pressed_flag = 1;
+               
+               write_eeprom(base + 0, on_hr);
+               write_eeprom(base + 1, on_min);
+               write_eeprom(base + 2, off_hr);
+               write_eeprom(base + 3, off_min);
+               
+              lcd_cmd(LCD_CLEAR);
+               lcd_goto(1, 1);
+               printf(lcd_out, "TIMER %d SAVED!", t+1);
+               lcd_goto(1, 2);
+               printf(lcd_out, "ON%02u:%02u OF%02u:%02u",
+                      on_hr, on_min, off_hr, off_min);
+               
+               // Wait for button release first (from save press)
+               while(input(ENCODER_SW) == 0);
+               delay_ms(50);
+               
+               // Stay on saved screen - wait for fresh ENTER press
+               while(input(ENCODER_SW) == 1);
+               delay_ms(20);
+               while(input(ENCODER_SW) == 0);
+               delay_ms(50);
+               
+               break;
+            }
+            else {
+               button_pressed_flag = 0;
+            }
+         }
+         
+         if(input(ENCODER_SW) != 0) {
+            button_pressed_flag = 0;
+         }
+         
+         delay_ms(1);
+      }
+   }
+   
+   lcd_cmd(LCD_CLEAR);
+   delay_ms(100);
+   advance_to_next_menu();
+}
+
+void handle_auto_restart_mode() {
+   while (input(ENCODER_SW) == 0);
+   lcd_cmd(LCD_CLEAR); 
+   lcd_goto(1, 1);
+   printf(lcd_out, "9.AUTO RESTART");
+   
+   int8 auto_restart = read_eeprom(0x35);
+   int8 original_mode = auto_restart;
+   int8 last_displayed = 255;
+   int1 button_pressed_flag = 0; 
+    
+   lcd_goto(1, 2);
+   if (auto_restart == 0)
+      printf(lcd_out, ">> MODE: AUTO     ");
+   else
+      printf(lcd_out, ">> MODE: MANUAL   ");
+   
+   while (1) {
+      if (input(ENCODER_A) == 0 && input(ENCODER_B) != 0) {
+         delay_ms(5);
+         auto_restart++;
+         if (auto_restart > 1) auto_restart = 0;
+         while (input(ENCODER_A) == 0);
+      }
+      else if (input(ENCODER_B) == 0 && input(ENCODER_A) != 0) {
+         delay_ms(5);
+         if (auto_restart == 0)
+            auto_restart = 1;
+         else
+            auto_restart--;
+         while (input(ENCODER_B) == 0);
+      }
+      
+      if (auto_restart != last_displayed) {
+         lcd_goto(1, 2);
+         if (auto_restart == 0)
+            printf(lcd_out, ">> MODE: AUTO     ");
+         else
+            printf(lcd_out, ">> MODE: MANUAL   ");
+         last_displayed = auto_restart;
+      }
+      
+      if (input(ENCODER_SW) == 0 && button_pressed_flag == 0) {
+         delay_ms(20);
+         if (input(ENCODER_SW) == 0) {
+            button_pressed_flag = 1;
+            
+            if (auto_restart != original_mode) {
+               write_eeprom(0x35, auto_restart);
+               
+               lcd_cmd(LCD_CLEAR); 
+               lcd_goto(1, 1);
+               printf(lcd_out, "MODE SAVED!");
+               lcd_goto(1, 2);
+               if (auto_restart == 0)
+                  printf(lcd_out, "MODE: AUTO   ");
+               else
+                  printf(lcd_out, "MODE: MANUAL ");
+               
+               while (input(ENCODER_SW) == 0) {
+                  delay_ms(10);
+               }
+               // ===== CHANGED: Press ENTER to proceed =====
+               lcd_goto(1, 2);
+               printf(lcd_out, "Press ENTER     ");
+               while(input(ENCODER_SW) == 1);
+               delay_ms(20);
+               while(input(ENCODER_SW) == 0);
+               delay_ms(50);
+               // ===== END CHANGE =====
+               advance_to_next_menu();
+            }
+            else {
+               while (input(ENCODER_SW) == 0) {
+                  delay_ms(10);
+               }
+               // ===== CHANGED: No Change + Press ENTER =====
+               lcd_cmd(LCD_CLEAR);
+               lcd_goto(1, 1);
+               printf(lcd_out, "No Change");
+               lcd_goto(1, 2);
+               printf(lcd_out, "Press ENTER");
+               while(input(ENCODER_SW) == 1);
+               delay_ms(20);
+               while(input(ENCODER_SW) == 0);
+               delay_ms(50);
+               // ===== END CHANGE =====
+               advance_to_next_menu();
+            }
+            
+            lcd_cmd(LCD_CLEAR);     
+            delay_ms(100);
+            break;
+         }
+         else {
+            button_pressed_flag = 0;
+         }
+      }
+      
+      if (input(ENCODER_SW) != 0) {
+         button_pressed_flag = 0;
+      }
+      
+      delay_ms(1);
+   }
+}
+
+void handle_unbalance_trip_setting() {
+   while (input(ENCODER_SW) == 0);
+   
+   int16 ub_limit = make16(read_eeprom(0x37), read_eeprom(0x36));
+   
+   if (ub_limit > 100) ub_limit = 30;
+   if (ub_limit < 0)   ub_limit = 0;
+   
+   int16 original_limit = ub_limit;
+   
+   lcd_cmd(LCD_CLEAR); 
+   lcd_goto(1, 1);
+   printf(lcd_out, "10.UNBALANCED TRIP");
+   
+   int16 last_value = -1;
+   int1 button_pressed_flag = 0;
+   
+   while (1) {
+      if (ub_limit != last_value) {
+         lcd_goto(1, 2);
+         printf(lcd_out, "Limit: %3Lu%%", ub_limit);
+         last_value = ub_limit;
+      }
+      
+      if (input(ENCODER_A) == 0 && input(ENCODER_B) != 0) {
+         delay_ms(5);
+         if (ub_limit < 100) ub_limit++;
+         delay_ms(40);
+         while (input(ENCODER_A) == 0);
+      }
+      else if (input(ENCODER_B) == 0 && input(ENCODER_A) != 0) {
+         delay_ms(5);
+         if (ub_limit > 0) ub_limit--;
+         delay_ms(40);
+         while (input(ENCODER_B) == 0);
+      }
+      
+      if (input(ENCODER_SW) == 0 && button_pressed_flag == 0) {
+         delay_ms(20);
+         if (input(ENCODER_SW) == 0) {
+            button_pressed_flag = 1;
+            
+            if (ub_limit != original_limit) {
+               write_eeprom(0x36, make8(ub_limit, 0));
+               write_eeprom(0x37, make8(ub_limit, 1));
+               
+               lcd_cmd(LCD_CLEAR); 
+               lcd_goto(1, 1);
+               printf(lcd_out, "LIMIT SAVED!");
+               lcd_goto(1, 2);
+               printf(lcd_out, "Limit: %3Lu%%", ub_limit);
+               
+               while (input(ENCODER_SW) == 0) {
+                  delay_ms(10);
+               }
+               // ===== CHANGED: Press ENTER to proceed =====
+               lcd_goto(1, 2);
+               printf(lcd_out, "Press ENTER     ");
+               while(input(ENCODER_SW) == 1);
+               delay_ms(20);
+               while(input(ENCODER_SW) == 0);
+               delay_ms(50);
+               // ===== END CHANGE =====
+               advance_to_next_menu();
+            }
+            else {
+               while (input(ENCODER_SW) == 0) {
+                  delay_ms(10);
+               }
+               // ===== CHANGED: No Change + Press ENTER =====
+               lcd_cmd(LCD_CLEAR);
+               lcd_goto(1, 1);
+               printf(lcd_out, "No Change");
+               lcd_goto(1, 2);
+               printf(lcd_out, "Press ENTER");
+               while(input(ENCODER_SW) == 1);
+               delay_ms(20);
+               while(input(ENCODER_SW) == 0);
+               delay_ms(50);
+               // ===== END CHANGE =====
+               advance_to_next_menu();
+            }
+            
+            lcd_cmd(LCD_CLEAR); 
+            delay_ms(100);
+            break;
+         }
+         else {
+            button_pressed_flag = 0;
+         }
+      }
+      
+      if (input(ENCODER_SW) != 0) {
+         button_pressed_flag = 0;
+      }
+      
+      delay_ms(1);
+   }
+}
+
+void handle_ct_selection_menu(void) {
+    while (input(ENCODER_SW) == 0);
+    
+    const int16 ct_amps[]  = {5, 30, 50, 100, 200, 300};
+    const int8  ct_ratios[] = {1, 6, 10, 20, 40, 60};
+    const int8 total_cts = sizeof(ct_amps) / sizeof(ct_amps[0]);
+   
+    int8 saved_ratio = read_eeprom(0x60);
+    int8 original_ratio = saved_ratio;
+    int8 option = 0;
+    
+    for (int8 i = 0; i < total_cts; i++) {
+        if (ct_ratios[i] == saved_ratio) {
+            option = i;
+            break;
+        }
+    }
+    
+    if (saved_ratio != ct_ratios[option]) {
+        write_eeprom(0x60, ct_ratios[0]);
+        original_ratio = ct_ratios[0];
+        option = 0;
+    }
+    
+    lcd_cmd(LCD_CLEAR); 
+    lcd_goto(1, 1);
+    printf(lcd_out, "11.SELECT CT TYPE");
+    
+    int8 last_option = -1;
+    
+    while (1) {
+        if (option != last_option) {
+            lcd_goto(1, 2);
+            printf(lcd_out, "> %3luA (%2u:1)  ", (unsigned long)ct_amps[option], ct_ratios[option]);
+            last_option = option;
+        }
+        
+        if (input(ENCODER_A) == 0 && input(ENCODER_B) != 0) {
+            delay_ms(5);
+            if (option < total_cts - 1) option++;
+            delay_ms(40);
+            while (input(ENCODER_A) == 0);
+        }
+        else if (input(ENCODER_B) == 0 && input(ENCODER_A) != 0) {
+            delay_ms(5);
+            if (option > 0) option--;
+            delay_ms(40);
+            while (input(ENCODER_B) == 0);
+        }
+        
+        if (input(ENCODER_SW) == 0) {
+            delay_ms(20);
+            if (input(ENCODER_SW) == 0) {
+                
+                if (ct_ratios[option] != original_ratio) {
+                    write_eeprom(0x60, ct_ratios[option]);
+                    
+                    lcd_cmd(LCD_CLEAR); 
+                    lcd_goto(1, 1);
+                    printf(lcd_out, "CT SAVED!");
+                    lcd_goto(1, 2);
+                    printf(lcd_out, "CT: %luA (%u:1)", (unsigned long)ct_amps[option], ct_ratios[option]);
+                    
+                    while (input(ENCODER_SW) == 0) {
+                        delay_ms(10);
+                    }
+                    // ===== CHANGED: Press ENTER to proceed =====
+                    lcd_goto(1, 2);
+                    printf(lcd_out, "Press ENTER     ");
+                    while(input(ENCODER_SW) == 1);
+                    delay_ms(20);
+                    while(input(ENCODER_SW) == 0);
+                    delay_ms(50);
+                    // ===== END CHANGE =====
+                    advance_to_next_menu();
+                }
+                else {
+                    while (input(ENCODER_SW) == 0) {
+                        delay_ms(10);
+                    }
+                    // ===== CHANGED: No Change + Press ENTER =====
+                    lcd_cmd(LCD_CLEAR);
+                    lcd_goto(1, 1);
+                    printf(lcd_out, "No Change");
+                    lcd_goto(1, 2);
+                    printf(lcd_out, "Press ENTER");
+                    while(input(ENCODER_SW) == 1);
+                    delay_ms(20);
+                    while(input(ENCODER_SW) == 0);
+                    delay_ms(50);
+                    // ===== END CHANGE =====
+                    advance_to_next_menu();
+                }
+                
+                lcd_cmd(LCD_CLEAR); 
+                delay_ms(100);
+                break;
+            }
+        }
+        
+        delay_ms(1);
+    }
+}
+
+void handle_polarization_index_menu(void) {
+    while (input(ENCODER_SW) == 0);
+    
+    int16 ir_1min_int  = make16(read_eeprom(0x3B), read_eeprom(0x3A));
+    int16 ir_10min_int = make16(read_eeprom(0x3D), read_eeprom(0x3C));
+    
+    if (ir_1min_int < 5 || ir_1min_int > 1000) ir_1min_int = 5;
+    if (ir_10min_int < 5 || ir_10min_int > 1000) ir_10min_int = 10;
+    
+    int16 original_ir_1min = ir_1min_int;
+    int16 original_ir_10min = ir_10min_int;
+    
+    float ir_1min, ir_10min, pii;
+    int16 last_value = -1;
+    int1 button_pressed_flag = 0;
+    int1 values_changed = 0;
+    
+    lcd_cmd(LCD_CLEAR); 
+    delay_ms(100);
+    lcd_cmd(LCD_CLEAR); 
+    lcd_goto(1, 1);
+    printf(lcd_out, "12.PI TEST-IR@1m");
+    
+    // Step 1: IR at 1min
+    while (1) {
+        ir_1min = (float)ir_1min_int / 10.0;
+        
+        if (ir_1min_int != last_value) {
+            lcd_goto(1, 2);
+            printf(lcd_out, " : %3.1f MOhm   ", ir_1min);
+            last_value = ir_1min_int;
+        }
+        
+        if (input(ENCODER_A) == 0 && input(ENCODER_B) != 0) {
+            delay_ms(5);
+            if (ir_1min_int < 1000) ir_1min_int += 5;
+            delay_ms(40);
+            while (input(ENCODER_A) == 0);
+        }
+        else if (input(ENCODER_B) == 0 && input(ENCODER_A) != 0) {
+            delay_ms(5);
+            if (ir_1min_int > 5) ir_1min_int -= 5;
+            delay_ms(40);
+            while (input(ENCODER_B) == 0);
+        }
+        
+        if (input(ENCODER_SW) == 0) {
+            delay_ms(50);
+            button_pressed_flag = 1;
+            
+            if (ir_1min_int != original_ir_1min) {
+                values_changed = 1;
+                
+                lcd_cmd(LCD_CLEAR); 
+                lcd_goto(1, 1);
+                printf(lcd_out, "IR@1m SAVED!");
+                lcd_goto(1, 2);
+                printf(lcd_out, "Value: %3.1f MOhm", ir_1min);
+                
+                while (input(ENCODER_SW) == 0){
+                   delay_ms(10);
+                }
+                // ===== CHANGED: Press ENTER to proceed to step 2 =====
+                lcd_goto(1, 2);
+                printf(lcd_out, "Press ENTER     ");
+                while(input(ENCODER_SW) == 1);
+                delay_ms(20);
+                while(input(ENCODER_SW) == 0);
+                delay_ms(50);
+                // ===== END CHANGE =====
+            }
+            else {
+                while (input(ENCODER_SW) == 0){
+                    delay_ms(10);
+                }
+            }
+            
+            break;
+        }
+        
+        delay_ms(1);
+    }
+    
+    // Step 2: IR at 10min
+    last_value = -1;
+    lcd_cmd(LCD_CLEAR); 
+    delay_ms(50);
+    lcd_goto(0, 1);
+    printf(lcd_out, "Enter IR@10min  ");
+    
+    while (1) {
+        ir_10min = (float)ir_10min_int / 10.0;
+        
+        if (ir_10min_int != last_value) {
+            lcd_goto(1, 2);
+            printf(lcd_out, " : %3.1f MOhm   ", ir_10min);
+            last_value = ir_10min_int;
+        }
+        
+        if (input(ENCODER_A) == 0 && input(ENCODER_B) != 0) {
+            delay_ms(5);
+            if (ir_10min_int < 1000) ir_10min_int += 5;
+            delay_ms(40);
+            while (input(ENCODER_A) == 0);
+        }
+        else if (input(ENCODER_B) == 0 && input(ENCODER_A) != 0) {
+            delay_ms(5);
+            if (ir_10min_int > 5) ir_10min_int -= 5;
+            delay_ms(40);
+            while (input(ENCODER_B) == 0);
+        }
+        
+        if (input(ENCODER_SW) == 0) {
+            delay_ms(50);
+            button_pressed_flag = 1;
+            
+            if (ir_10min_int != original_ir_10min) {
+                values_changed = 1;
+            }
+            
+            if (values_changed || (ir_1min_int != original_ir_1min) || (ir_10min_int != original_ir_10min)) {
+                lcd_cmd(LCD_CLEAR);      
+                lcd_goto(1, 1);
+                printf(lcd_out, "PI VALUES SAVED!");
+                lcd_goto(1, 2);
+                printf(lcd_out, "1m:%3.1f 10m:%3.1f", ir_1min, ir_10min);
+                
+                while (input(ENCODER_SW) == 0) {
+                    delay_ms(10);
+                }
+                
+                write_eeprom(0x3A, make8(ir_1min_int, 0));
+                write_eeprom(0x3B, make8(ir_1min_int, 1));
+                write_eeprom(0x3C, make8(ir_10min_int, 0));
+                write_eeprom(0x3D, make8(ir_10min_int, 1));
+                
+                // ===== CHANGED: Press ENTER to see result =====
+                lcd_goto(1, 2);
+                printf(lcd_out, "Press ENTER     ");
+                while(input(ENCODER_SW) == 1);
+                delay_ms(20);
+                while(input(ENCODER_SW) == 0);
+                delay_ms(50);
+                // ===== END CHANGE =====
+            }
+            else {
+                while (input(ENCODER_SW) == 0) {
+                    delay_ms(10);
+                }
+            }
+            
+            break;
+        }
+        
+        delay_ms(1);
+    }
+    
+    // Step 3: Calculate PI and show result
+    ir_1min = (float)ir_1min_int / 10.0;
+    ir_10min = (float)ir_10min_int / 10.0;
+    pii = ir_10min / ir_1min;
+    
+    lcd_cmd(LCD_CLEAR);      
+    delay_ms(50);
+    lcd_goto(1, 1);
+    printf(lcd_out, "PI=%3.2f RESULT ", pii);
+    lcd_goto(1, 2);
+    if (pii >= 2.0)
+        printf(lcd_out, "GOOD INSULATION ");
+    else if (pii >= 1.0)
+        printf(lcd_out, "POOR INSULATION ");
+    else
+        printf(lcd_out, "BAD INSULATION  ");
+    
+    // ===== CHANGED: Press ENTER instead of 3 sec delay =====
+    // Wait on result screen until user presses ENTER
+    while(input(ENCODER_SW) == 1);
+    delay_ms(20);
+    while(input(ENCODER_SW) == 0);
+    delay_ms(50);
+    // ===== END CHANGE =====
+    
+    advance_to_next_menu();
+    
+    lcd_cmd(LCD_CLEAR); 
+    delay_ms(100);
+}
+
+// ==================== ENHANCED MENU HANDLER ====================
+
+void handle_menu(void) {
+   if (in_menu_selection) {
+      handle_menu_navigation();
+   }
+   
+   if (!in_menu_selection && prog == 1) {
+      if (menu_number == 1) {
+         handle_phase_menu();
+      }
+      else if (menu_number == 2) {
+         handle_juice_menu();
+      }
+      else if (menu_number == 3) {
+         handle_power_on_delay();
+      }
+      else if (menu_number == 4) {
+         handle_star_delta_delay();
+      }
+      else if (menu_number == 5) {
+         handle_voltage_setting();
+      }
+      else if (menu_number == 6) {
+         handle_dryrun_delay();
+      }
+      else if (menu_number == 7) {
+         handle_dryrun_restart();
+      }
+      else if (menu_number == 8) {
+         handle_dryrun_trip();
+      }
+      else if (menu_number == 9) {
+         handle_set_on_time();        
+      }
+      else if (menu_number == 10) {
+         handle_cyclic_timer();      
+      }
+      else if (menu_number == 11) {
+         handle_auto_restart_mode();  
+      }
+      else if (menu_number == 12) {
+         handle_unbalance_trip_setting(); 
+      }
+      else if (menu_number == 13) {
+         handle_ct_selection_menu(); 
+      }
+      else if (menu_number == 14) {
+         handle_polarization_index_menu(); 
+      }
+   }
+}
+
+void check_unbalance_trip() {
+   float r = ramp;
+   float y = yamp;
+   float b = bamp;
+
+   float max = r;
+   if (y > max) max = y;
+   if (b > max) max = b;
+
+   float min = r;
+   if (y < min) min = y;
+   if (b < min) min = b;
+
+   float avg = (r + y + b) / 3.0;
+   if (avg == 0.0){
+      trip_status=0;
+      return;
+   }
+   
+   float unbalance = ((max - min) / avg) * 100.0;
+
+   int16 ub_limit = make16(read_eeprom(0x27), read_eeprom(0x26));
+   if (ub_limit > 100) ub_limit = 30;
+
+   if (unbalance > ub_limit) {
+      output_low(PIN_C1);
+      trip_status = 1;
+    } else {
+        trip_status = 0;
+    }
+}
+
+// ==================== MAIN FUNCTION ====================
+
+void main() {
+   output_high(ON);
+   output_high(OFF);
+   output_high(RLED);
+   output_high(YLED);
+   output_high(BLED);
+   lcd_initialize();  
+   set_tris_a(0xFF);
+   set_tris_b(0xCC);
+   set_tris_c(0xA4);
+    
+   setup_adc_ports(sAN0|sAN1|sAN2|sAN3|sAN4|sAN14|NO_ANALOGS);
+   setup_adc(ADC_CLOCK_INTERNAL|ADC_TAD_MUL_4);
+   
+   output_low(OFF);
+   output_high(OFF);
+   setup_timer_1(T1_INTERNAL|T1_DIV_BY_8);
+   enable_interrupts(int_AD);
+   enable_interrupts(int_TIMER1);
+   set_timer1(34286);
+   enable_interrupts(int_AD);
+   enable_interrupts(int_TIMER1);
+   enable_interrupts(GLOBAL);
+   delay_ms(10);
+   read_adc(ADC_START_ONLY);
+   
+   // ==== Load values from EEPROM ====
+   phase_setting = read_eeprom(0x00);
+   if(phase_setting==0xff)
+   {
+      phase_setting=0;
+   }
+   phase=phase_setting;   
+  
+   if(phase)
+   {
+      seqok=1;
+   }
+   
+   hv_value = make16(read_eeprom(0x05), read_eeprom(0x04));
+   lv_value = make16(read_eeprom(0x09), read_eeprom(0x08));
+   ol_value = make16(read_eeprom(0x0D), read_eeprom(0x0C));
+   
+   delay_time1 = make16(read_eeprom(0x11), read_eeprom(0x10));
+   sd_delay = make16(read_eeprom(0x15), read_eeprom(0x14));
+
+   if(delay_time1 == 0xFFFF) { delay_time1 = 10; }
+   if(sd_delay == 0xFFFF)    { sd_delay = 3; }
+   on_delay = sd_delay;
+   
+   int16 set_on_time = make16(read_eeprom(0x49), read_eeprom(0x48));
+   if(set_on_time == 0xFFFF) { set_on_time = 0; }
+   
+  // Dryrun delay load
+   drys = make16(read_eeprom(0x18), read_eeprom(0x17));
+   if(drys == 0xFFFF) { drys = 0; }
+   
+  // Dryrun trip amps load  
+   drya = make16(read_eeprom(0x1E), read_eeprom(0x1D));
+   if(drya == 0xFFFF) { drya = 0; }
+   
+  // Auto restart mode load
+   aut = read_eeprom(0x35);
+   if(aut == 0xFF) { aut = 0; }
+
+  // Fix 3: dryrun restart delay
+   dry_restart_val = make16(read_eeprom(0x1B), read_eeprom(0x1A));
+   if(dry_restart_val == 0xFFFF || dry_restart_val == 0) { dry_restart_val = 90; }
+
+ // cyclic_time array load
+   
+   for(int8 t = 0; t < 5; t++) {
+      int8 base = 0x20 + (t * 4);
+      cyclic_time[t*2][0]   = read_eeprom(base + 0);
+      cyclic_time[t*2][1]   = read_eeprom(base + 1);
+      cyclic_time[t*2+1][0] = read_eeprom(base + 2);
+      cyclic_time[t*2+1][1] = read_eeprom(base + 3);
+   }
+
+   l_voltr = make16(read_eeprom(0x05), read_eeprom(0x04));
+   l_volty = make16(read_eeprom(0x09), read_eeprom(0x08));
+   l_voltb = make16(read_eeprom(0x47), read_eeprom(0x46));
+
+   h_voltr = make16(read_eeprom(0x0B), read_eeprom(0x0A));
+   h_volty = make16(read_eeprom(0x0D), read_eeprom(0x0C));
+   h_voltb = make16(read_eeprom(0x0F), read_eeprom(0x0E));
+
+   over_cr = make16(read_eeprom(0x41), read_eeprom(0x40));
+   over_cy = make16(read_eeprom(0x43), read_eeprom(0x42));
+   over_cb = make16(read_eeprom(0x45), read_eeprom(0x44));
+
+   if(l_voltr == 0xFFFF || l_voltr < 100 || l_voltr > 400) {
+      l_voltr = 200;
+      write_eeprom(0x04, make8(l_voltr, 0));
+      write_eeprom(0x05, make8(l_voltr, 1));
+   }
+   if(l_volty == 0xFFFF || l_volty < 100 || l_volty > 400) {
+      l_volty = 200;
+      write_eeprom(0x08, make8(l_volty, 0));
+      write_eeprom(0x09, make8(l_volty, 1));
+   }
+   if(l_voltb == 0xFFFF || l_voltb < 100 || l_voltb > 400) {
+      l_voltb = 200;
+      write_eeprom(0x46, make8(l_voltb, 0));
+      write_eeprom(0x47, make8(l_voltb, 1));
+   }
+
+   if(h_voltr == 0xFFFF || h_voltr < 250 || h_voltr > 600) {
+      h_voltr = 480;
+      write_eeprom(0x0A, make8(h_voltr, 0));
+      write_eeprom(0x0B, make8(h_voltr, 1));
+   }
+   if(h_volty == 0xFFFF || h_volty < 250 || h_volty > 600) {
+      h_volty = 480;
+      write_eeprom(0x0C, make8(h_volty, 0));
+      write_eeprom(0x0D, make8(h_volty, 1));
+   }
+   if(h_voltb == 0xFFFF || h_voltb < 250 || h_voltb > 600) {
+      h_voltb = 480;
+      write_eeprom(0x0E, make8(h_voltb, 0));
+      write_eeprom(0x0F, make8(h_voltb, 1));
+   }
+
+   if(over_cr == 0xFFFF || over_cr > 300) {
+      over_cr = 30;
+      write_eeprom(0x40, make8(over_cr, 0));
+      write_eeprom(0x41, make8(over_cr, 1));
+   }
+   if(over_cy == 0xFFFF || over_cy > 300) {
+      over_cy = 30;
+      write_eeprom(0x42, make8(over_cy, 0));
+      write_eeprom(0x43, make8(over_cy, 1));
+   }
+   if(over_cb == 0xFFFF || over_cb > 300) {
+      over_cb = 30;
+      write_eeprom(0x44, make8(over_cb, 0));
+      write_eeprom(0x45, make8(over_cb, 1));
+   }
+   
+   lcd_initialize();
+   lcd_cmd(LCD_CLEAR); 
+    
+   lcd_goto(1, 1); 
+   printf(lcd_out, "NEW QBITRONICS");
+   lcd_goto(1, 2); 
+   printf(lcd_out,"DIGITAL STARTER");
+   delay_ms(2000);
+   
+   lcd_cmd(LCD_CLEAR); 
+   lcd_goto(1, 1); 
+   printf(lcd_out, "DIGITAL STARTER");
+   lcd_goto(1, 2); 
+   printf(lcd_out,"Seq. Checking...");
+   delay_ms(1000);
+   
+   
+   enable_interrupts(int_AD);
+   enable_interrupts(int_TIMER1);
+   set_timer1(34286);
+   delay_ms(10);
+   read_adc(ADC_START_ONLY);
+   enable_interrupts(GLOBAL);
+   
+   if(seqok==0)
+   {
+      while (1) {
+         output_low(RLED);
+         output_low(YLED);
+         output_low(BLED);
+         delay_ms(300);
+         output_high(RLED);
+         output_high(YLED);
+         output_high(BLED);
+         delay_ms(200);
+         display_sequence();
+         reset_sequence();
+       
+         if (ryb_detected >= 5) {
+            wait= 1;
+            break;
+         }
+         new_value(); 
+         voltage();
+         currentr=0;
+         currentr2=0;
+         currentr3=0;
+         if(sentflg ==1 || sentflg2 == 1){
+            sentflg=0;
+            sentflg2=0;
+         }
+      }  
+   }
+    
+   if(seqok==1)
+   {
+      while (1) {
+         output_low(RLED);
+         output_low(YLED);
+         output_low(BLED);
+         delay_ms(300);
+         output_high(RLED);
+         output_high(YLED);
+         output_high(BLED);
+         delay_ms(200);
+         seq_flag =1;
+         reset_sequence();
+         ryb_detected=ryb_detected+1;
+       
+         if (ryb_detected >= 5) {
+            wait= 1;
+            break;
+         }
+         new_value(); 
+         voltage();
+         currentr=0;
+         currentr2=0;
+         currentr3=0;
+         if(sentflg ==1 || sentflg2 == 1){
+            sentflg=0;
+            sentflg2=0;
+         }
+      }  
+   }
+
+   output_low(RLED);
+   output_low(YLED);
+   output_low(BLED);
+
+   prog = 0;
+   menu_number = 1;
+   in_menu_selection = 1;
+   int8 prog_prev = 0xFF;  
+   int1 show_welcome_once = 0;
+   int8 ct_ratio = read_eeprom(0x60);
+   
+   disable_interrupts(int_AD);
+   disable_interrupts(int_TIMER1);    
+  
+   lcd_cmd(LCD_CLEAR); 
+   ///////////////////////////////////////P-Delay/////////////////////////////
+   while(1){   
+      delay_time1=delay_time1-1;
+      lcd_goto(1, 1); 
+      printf(lcd_out, "POWER ON DLY...");
+      lcd_goto(1, 2); 
+      printf(lcd_out, "   %ld sec   ", (long)delay_time1);
+      delay_ms(950);
+      if(delay_time1 <=1)
+      {
+         break;
+      }
+   }
+   delay_ms(100);
+   enable_interrupts(int_AD);
+   enable_interrupts(int_TIMER1);
+   enable_interrupts(GLOBAL);
+     
+   lcd_cmd(LCD_CLEAR); 
+   
+   while(1) {
+   
+      new_value(); 
+      voltage();        
+      amps();
+   
+      if(t_state==on_state)
+      {
+         now=now;
+      }
+      else
+      {
+         t_state=on_state;
+         now=2;
+      }
+      new_value();
+   
+      for(i=0;i<1;i++)
+      {
+         if(old_value[i]==voltages[i]&&temp_amp==currentr)
+            now=(now==0)?0:now;
+         else
+         {
+            old_value[i]=voltages[i];
+            temp_amp=currentr;
+            now=(now==0)?1:now;
+         }
+      }
+   
+      lcd_goto(1, 1); 
+      printf(lcd_out, "%2.0f", currentr);     
+      lcd_goto(5, 1); 
+      printf(lcd_out, "%2.0f", currentr2);
+      lcd_goto(9, 1); 
+      printf(lcd_out, "%2.0f", currentr3);
+
+      lcd_goto(14, 1);
+      if (phase_setting == 0)
+         printf(lcd_out, "2P");
+      else
+         printf(lcd_out, "3P");
+  
+      rvolt=(int16)vr1;
+      yvolt=(int16)vy1;
+      bvolt=(int16)vb1;
+    
+      rvolt3=(((rvolt/100) % 10) );
+      rvolt2=(((rvolt/10) % 10) );
+      rvolt1=((rvolt % 10) );
+
+      yvolt3=(((yvolt/100) % 10) );
+      yvolt2=(((yvolt/10) % 10) );
+      yvolt1=((yvolt % 10) );
+
+      bvolt3=(((bvolt/100) % 10) );
+      bvolt2=(((bvolt/10) % 10) );
+      bvolt1=((bvolt % 10) );
+  
+      lcd_goto(1, 2);        
+      printf(lcd_out,"%d%d%d,", rvolt3,rvolt2,rvolt1);  
+   
+      lcd_goto(5, 2); 
+      printf(lcd_out,"%d%d%d,", yvolt3,yvolt2,yvolt1);   
+   
+      lcd_goto(9, 2); 
+      printf(lcd_out,"%d%d%d", bvolt3,bvolt2,bvolt1); 
+      delay_ms(500);
+
+      if((volt_level!=0||amps_level!=0)&&on_state==1){
+         on_state=0;
+         moff();         
+         setsw=0;
+         auto_state =1;
+         ckflg=0;                 
+      }
+      
+      if (prog == 0) {
+         if (!input(ENCODER_SW) && !input(key2)) {
+            delay_ms(30);
+            if (!input(ENCODER_SW) && !input(key2)) {
+               disable_interrupts(int_AD);
+               disable_interrupts(int_TIMER1);  
+               lcd_cmd(LCD_CLEAR); 
+               lcd_goto(1, 1);
+               printf(lcd_out, "ENTERING MENU...");
+               delay_ms(2000);
+               lcd_cmd(LCD_CLEAR); 
+               while (!input(ENCODER_SW) || !input(key2));
+               
+               while (input(ENCODER_SW) == 0);
+               delay_ms(1000);
+               prog = 1;
+               in_menu_selection = 1;
+               menu_number = 1;
+            }
+         }
+      }
+      else if (prog == 1) {
+         disable_interrupts(int_AD);
+         disable_interrupts(int_TIMER1);  
+         lcd_cmd(LCD_CLEAR); 
+         handle_menu();
+         lcd_cmd(LCD_CLEAR); 
+         enable_interrupts(int_AD);
+         enable_interrupts(int_TIMER1);
+         enable_interrupts(GLOBAL);
+      }
+      
+      if(!input(key1) &&volt_level==0&&amps_level==0)
+      {
+         disable_interrupts(int_AD);
+         disable_interrupts(int_TIMER1);        
+         lcd_goto(14, 2); 
+         printf(lcd_out, "ON ");
+         mon();
+         q='A';          
+         state=1; 
+         on_state=1;
+         setsw=1; 
+         ckflg=1;
+         enable_interrupts(int_AD);
+         enable_interrupts(int_TIMER1);
+         enable_interrupts(GLOBAL);
+      }
+
+      if(!input(key2))
+      {  
+         disable_interrupts(int_AD);
+         disable_interrupts(int_TIMER1);    
+         lcd_goto(14, 2); 
+         printf(lcd_out, "OFF");
+         moff();
+         setsw=1;
+         on_state=0;
+         q='a';         
+         state=0;          
+         auto_state =1;         
+             
+         enable_interrupts(int_AD);
+         enable_interrupts(int_TIMER1);
+         enable_interrupts(GLOBAL);
+      }
+   }
+}

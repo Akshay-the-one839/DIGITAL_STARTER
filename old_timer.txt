@@ -1,0 +1,154 @@
+void handle_cyclic_timer(void) {
+   while (input(ENCODER_SW) == 0);
+   
+   int8 eeprom_base[] = {0x20, 0x24, 0x28, 0x2C, 0x30};
+   int8 t;
+   
+   for(t = 0; t < 5; t++) {
+   
+      lcd_cmd(LCD_CLEAR);
+      lcd_goto(1, 1);
+      printf(lcd_out, "CYCLIC TIMER %d", t+1);
+      lcd_goto(1, 2);
+      printf(lcd_out, "Press to ENTER");
+      
+      while(input(ENCODER_SW) == 1);
+      delay_ms(20);
+      while(input(ENCODER_SW) == 0);
+      delay_ms(50);
+      
+      int8 base = eeprom_base[t];
+      
+      int8 on_hr  = read_eeprom(base + 0);
+      int8 on_min = read_eeprom(base + 1);
+      int8 off_hr = read_eeprom(base + 2);
+      int8 off_min= read_eeprom(base + 3);
+      
+      if(on_hr  > 23) on_hr  = 0;
+      if(on_min > 59) on_min = 0;
+      if(off_hr > 23) off_hr = 0;
+      if(off_min> 59) off_min= 0;
+      
+      int8 orig_on_hr  = on_hr;
+      int8 orig_on_min = on_min;
+      int8 orig_off_hr = off_hr;
+      int8 orig_off_min= off_min;
+      
+      int8 field = 0;
+      int8 last_field   = 255;
+      int8 last_on_hr   = 255;
+      int8 last_on_min  = 255;
+      int8 last_off_hr  = 255;
+      int8 last_off_min = 255;
+      int1 button_pressed_flag = 0;
+      
+      lcd_cmd(LCD_CLEAR);
+      
+      while(1) {
+      
+         if(field != last_field || on_hr != last_on_hr || 
+            on_min != last_on_min || off_hr != last_off_hr || 
+            off_min != last_off_min) {
+            
+            lcd_goto(1, 1);
+            printf(lcd_out, "ON :");
+            if(field == 0) printf(lcd_out, "[%02u]", on_hr);
+            else           printf(lcd_out, " %02u ", on_hr);
+            printf(lcd_out, ":");
+            if(field == 1) printf(lcd_out, "[%02u] ", on_min);
+            else           printf(lcd_out, " %02u  ", on_min);
+            
+            lcd_goto(1, 2);
+            printf(lcd_out, "OFF:");
+            if(field == 2) printf(lcd_out, "[%02u]", off_hr);
+            else           printf(lcd_out, " %02u ", off_hr);
+            printf(lcd_out, ":");
+            if(field == 3) printf(lcd_out, "[%02u] ", off_min);
+            else           printf(lcd_out, " %02u  ", off_min);
+            
+            last_field   = field;
+            last_on_hr   = on_hr;
+            last_on_min  = on_min;
+            last_off_hr  = off_hr;
+            last_off_min = off_min;
+         }
+         
+         if(input(ENCODER_A) == 0 && input(ENCODER_B) != 0) {
+            delay_ms(5);
+            switch(field) {
+               case 0: if(on_hr  < 23) on_hr++;  break;
+               case 1: if(on_min < 59) on_min++; break;
+               case 2: if(off_hr < 23) off_hr++; break;
+               case 3: if(off_min< 59) off_min++;break;
+            }
+            while(input(ENCODER_A) == 0);
+            delay_ms(30);
+         }
+         else if(input(ENCODER_B) == 0 && input(ENCODER_A) != 0) {
+            delay_ms(5);
+            switch(field) {
+               case 0: if(on_hr  > 0) on_hr--;  break;
+               case 1: if(on_min > 0) on_min--; break;
+               case 2: if(off_hr > 0) off_hr--; break;
+               case 3: if(off_min> 0) off_min--;break;
+            }
+            while(input(ENCODER_B) == 0);
+            delay_ms(30);
+         }
+         
+         if(input(KEY1) == 0) {
+            delay_ms(30);
+            field = (field + 1) % 4;
+            int8 timeout = 50;
+            while(input(KEY1) == 0 && timeout > 0) {
+               delay_ms(10);
+               timeout--;
+            }
+         }
+         
+         if(input(ENCODER_SW) == 0 && button_pressed_flag == 0) {
+            delay_ms(20);
+            if(input(ENCODER_SW) == 0) {
+               button_pressed_flag = 1;
+               
+               write_eeprom(base + 0, on_hr);
+               write_eeprom(base + 1, on_min);
+               write_eeprom(base + 2, off_hr);
+               write_eeprom(base + 3, off_min);
+               
+              lcd_cmd(LCD_CLEAR);
+               lcd_goto(1, 1);
+               printf(lcd_out, "TIMER %d SAVED!", t+1);
+               lcd_goto(1, 2);
+               printf(lcd_out, "ON%02u:%02u OF%02u:%02u",
+                      on_hr, on_min, off_hr, off_min);
+               
+               // Wait for button release first (from save press)
+               while(input(ENCODER_SW) == 0);
+               delay_ms(50);
+               
+               // Stay on saved screen - wait for fresh ENTER press
+               while(input(ENCODER_SW) == 1);
+               delay_ms(20);
+               while(input(ENCODER_SW) == 0);
+               delay_ms(50);
+               
+               break;
+            }
+            else {
+               button_pressed_flag = 0;
+            }
+         }
+         
+         if(input(ENCODER_SW) != 0) {
+            button_pressed_flag = 0;
+         }
+         
+         delay_ms(1);
+      }
+   }
+   
+   lcd_cmd(LCD_CLEAR);
+   delay_ms(100);
+   advance_to_next_menu();
+}
