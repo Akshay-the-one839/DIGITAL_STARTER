@@ -14,7 +14,8 @@ Type=4
 [Opened Files]
 1=3ph_digi_starter.c
 2=..\GSM_RTOS_MOTOR\main_rtos.c
-3=
+3=..\GSM_FINAL\GSM_Final_code.c
+4=
 [Units]
 Count=1
 1=3ph_digi_starter (main)

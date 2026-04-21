@@ -2254,10 +2254,10 @@ void handle_cyclic_timer(void) {
                     lcd_cmd(LCD_CLEAR);
 
                   lcd_goto(1,1);
-                  printf(lcd_out,"ON  TIMER %d  OFF", t+1);
+                  printf(lcd_out,"ON TIMER %d OFF", t+1);
                   
                   lcd_goto(1,2);
-                  printf(lcd_out,"%02u:%02u      %02u:%02u", on_hr, on_min, off_hr, off_min);
+                  printf(lcd_out,"%02u:%02u  %02u:%02u", on_hr, on_min, off_hr, off_min);
                         
                         // Wait for button release first (from save press)
                         while(input(ENCODER_SW) == 0);
@@ -3021,20 +3021,21 @@ void main() {
    }
     // ===== NEW: Load remaining menu EEPROM values =====
 
- int8  juice_enable = read_eeprom(0x03);
+   juice_enable = read_eeprom(0x03);
    if (juice_enable != 0 && juice_enable != 1) juice_enable = 1;
 
+   set_on_time = make16(read_eeprom(0x49), read_eeprom(0x48));
+   if (set_on_time == 0xFFFF || set_on_time > 60) set_on_time = 0;
 
+   ub_limit_global = make16(read_eeprom(0x37), read_eeprom(0x36));
+   if (ub_limit_global > 100 || ub_limit_global == 0xFFFF) ub_limit_global = 30;
 
-    int16 ub_limit = make16(read_eeprom(0x27), read_eeprom(0x26));
-   if (ub_limit > 100) ub_limit = 30;
-   int16 ir_1min_int  = make16(read_eeprom(0x3B), read_eeprom(0x3A));
-  int16 ir_10min_int = make16(read_eeprom(0x3D), read_eeprom(0x3C));
+   ir_1min_int  = make16(read_eeprom(0x3B), read_eeprom(0x3A));
+   ir_10min_int = make16(read_eeprom(0x3D), read_eeprom(0x3C));
    if (ir_1min_int  < 5  || ir_1min_int  > 1000) ir_1min_int  = 5;
    if (ir_10min_int < 5  || ir_10min_int > 1000) ir_10min_int = 10;
-  float  ir_1min  = (float)ir_1min_int  / 10.0;
-  float  ir_10min = (float)ir_10min_int / 10.0;
-  float pii;
+   ir_1min  = (float)ir_1min_int  / 10.0;
+   ir_10min = (float)ir_10min_int / 10.0;
    if (ir_1min > 0.0) pii = ir_10min / ir_1min;
    
    lcd_initialize();

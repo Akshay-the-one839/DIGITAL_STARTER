@@ -2254,10 +2254,10 @@ void handle_cyclic_timer(void) {
                     lcd_cmd(LCD_CLEAR);
 
                   lcd_goto(1,1);
-                  printf(lcd_out,"ON  TIMER %d  OFF", t+1);
+                  printf(lcd_out,"ON TIMER %d OFF", t+1);
                   
                   lcd_goto(1,2);
-                  printf(lcd_out,"%02u:%02u      %02u:%02u", on_hr, on_min, off_hr, off_min);
+                  printf(lcd_out,"%02u:%02u  %02u:%02u", on_hr, on_min, off_hr, off_min);
                         
                         // Wait for button release first (from save press)
                         while(input(ENCODER_SW) == 0);

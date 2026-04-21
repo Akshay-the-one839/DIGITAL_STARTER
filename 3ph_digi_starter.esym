@@ -1,7 +1,7 @@
-D G "__PCH__" 0 3286 ""5.015""
-D G "__DEVICE__" 0 3286 "2622"
-D G "__DATE__" 0 3286 ""20-Apr-26""
-D G "__TIME__" 0 3286 ""11:53:15"" "LCD module connections"
+D G "__PCH__" 0 3304 ""5.015""
+D G "__DEVICE__" 0 3304 "2622"
+D G "__DATE__" 0 3304 ""21-Apr-26""
+D G "__TIME__" 0 3304 ""11:38:00"" "LCD module connections"
 D G "LCD_DATA_PIN" 0 2 "PIN_C3"
 D G "LCD_CLOCK_PIN" 0 3 "PIN_C4"
 D G "LCD_EN_PIN" 0 4 "PIN_B0"
@@ -2052,48 +2052,48 @@ V L "timeout" 0 2237 "int8" `1564
 C L "handle_cyclic_timer" 0 22 1 "FUNCTION"
 C L "handle_cyclic_timer" 0 22 1 "FUNCTION"
 C L "handle_cyclic_timer" 0 22 1 "FUNCTION"
-F G "handle_auto_restart_mode" 0 2296 "void()" `1567 
-V L "auto_restart" 0 2302 "int8" `1569 
-V L "original_mode" 0 2303 "int8" `1570 
-V L "last_displayed" 0 2304 "int8" `1571 
-V L "button_pressed_flag" 0 2305 "int1" `1572 
+F G "handle_auto_restart_mode" 0 2297 "void()" `1567 
+V L "auto_restart" 0 2303 "int8" `1569 
+V L "original_mode" 0 2304 "int8" `1570 
+V L "last_displayed" 0 2305 "int8" `1571 
+V L "button_pressed_flag" 0 2306 "int1" `1572 
 C L "handle_auto_restart_mode" 0 22 1 "FUNCTION"
 C L "handle_auto_restart_mode" 0 22 1 "FUNCTION"
 C L "handle_auto_restart_mode" 0 22 1 "FUNCTION"
 C L "handle_auto_restart_mode" 0 22 1 "FUNCTION"
-F G "handle_unbalance_trip_setting" 0 2403 "void()" `1583 
-V L "ub_limit" 0 2406 "int16" `1584 
-V L "original_limit" 0 2411 "int16" `1585 
-V L "last_value" 0 2417 "int16" `1587 
-V L "button_pressed_flag" 0 2418 "int1" `1588 
+F G "handle_unbalance_trip_setting" 0 2404 "void()" `1583 
+V L "ub_limit" 0 2407 "int16" `1584 
+V L "original_limit" 0 2412 "int16" `1585 
+V L "last_value" 0 2418 "int16" `1587 
+V L "button_pressed_flag" 0 2419 "int1" `1588 
 C L "handle_unbalance_trip_setting" 0 22 1 "FUNCTION"
 C L "handle_unbalance_trip_setting" 0 22 1 "FUNCTION"
 C L "handle_unbalance_trip_setting" 0 22 1 "FUNCTION"
 C L "handle_unbalance_trip_setting" 0 22 1 "FUNCTION"
-F G "handle_ct_selection_menu" 0 2503 "void()" `1595 
-V L "ct_amps" 0 2506 "[1]" `1596 
-V L "ct_ratios" 0 2507 "[1]" `1599 
-V L "total_cts" 0 2508 "int8" `1602 
-V L "saved_ratio" 0 2510 "int8" `1604 
-V L "original_ratio" 0 2511 "int8" `1605 
-V L "option" 0 2512 "int8" `1606 
-V L "i" 0 2514 "int8" `1607 
-V L "last_option" 0 2531 "int8" `1609 
+F G "handle_ct_selection_menu" 0 2504 "void()" `1595 
+V L "ct_amps" 0 2507 "[1]" `1596 
+V L "ct_ratios" 0 2508 "[1]" `1599 
+V L "total_cts" 0 2509 "int8" `1602 
+V L "saved_ratio" 0 2511 "int8" `1604 
+V L "original_ratio" 0 2512 "int8" `1605 
+V L "option" 0 2513 "int8" `1606 
+V L "i" 0 2515 "int8" `1607 
+V L "last_option" 0 2532 "int8" `1609 
 C L "handle_ct_selection_menu" 0 22 1 "FUNCTION"
 C L "handle_ct_selection_menu" 0 22 1 "FUNCTION"
 C L "handle_ct_selection_menu" 0 22 1 "FUNCTION"
 C L "handle_ct_selection_menu" 0 22 1 "FUNCTION"
-F G "handle_polarization_index_menu" 0 2607 "void()" `1616 
-V L "ir_1min_int" 0 2610 "int16" `1617 
-V L "ir_10min_int" 0 2611 "int16" `1618 
-V L "original_ir_1min" 0 2616 "int16" `1619 
-V L "original_ir_10min" 0 2617 "int16" `1620 
-V L "ir_1min" 0 2619 "float" `1621 
-V L "ir_10min" 0 2619 "float" `1622 
-V L "pii" 0 2619 "float" `1623 
-V L "last_value" 0 2620 "int16" `1624 
-V L "button_pressed_flag" 0 2621 "int1" `1625 
-V L "values_changed" 0 2622 "int1" `1626 
+F G "handle_polarization_index_menu" 0 2608 "void()" `1616 
+V L "ir_1min_int" 0 2611 "int16" `1617 
+V L "ir_10min_int" 0 2612 "int16" `1618 
+V L "original_ir_1min" 0 2617 "int16" `1619 
+V L "original_ir_10min" 0 2618 "int16" `1620 
+V L "ir_1min" 0 2620 "float" `1621 
+V L "ir_10min" 0 2620 "float" `1622 
+V L "pii" 0 2620 "float" `1623 
+V L "last_value" 0 2621 "int16" `1624 
+V L "button_pressed_flag" 0 2622 "int1" `1625 
+V L "values_changed" 0 2623 "int1" `1626 
 C L "handle_polarization_index_menu" 0 22 1 "FUNCTION"
 C L "handle_polarization_index_menu" 0 22 1 "FUNCTION"
 C L "handle_polarization_index_menu" 0 22 1 "FUNCTION"
@@ -2104,30 +2104,38 @@ C L "handle_polarization_index_menu" 0 22 1 "FUNCTION"
 C L "handle_polarization_index_menu" 0 22 2 "FUNCTION"
 C L "handle_polarization_index_menu" 0 22 1 "FUNCTION"
 C L "handle_menu" 0 22 1 "FUNCTION"
-F G "handle_menu" 0 2797 "void()" `1649 
-F G "check_unbalance_trip" 0 2850 "void()" `1650 
-V L "r" 0 2851 "float" `1651 
-V L "y" 0 2852 "float" `1652 
-V L "b" 0 2853 "float" `1653 
-V L "max" 0 2855 "float" `1654 
-V L "min" 0 2859 "float" `1655 
-V L "avg" 0 2863 "float" `1656 
-V L "unbalance" 0 2869 "float" `1657 
-V L "ub_limit" 0 2871 "int16" `1658 
+F G "handle_menu" 0 2798 "void()" `1649 
+F G "check_unbalance_trip" 0 2851 "void()" `1650 
+V L "r" 0 2852 "float" `1651 
+V L "y" 0 2853 "float" `1652 
+V L "b" 0 2854 "float" `1653 
+V L "max" 0 2856 "float" `1654 
+V L "min" 0 2860 "float" `1655 
+V L "avg" 0 2864 "float" `1656 
+V L "unbalance" 0 2870 "float" `1657 
+V L "ub_limit" 0 2872 "int16" `1658 
 C L "MAIN" 0 22 1 "FUNCTION"
-F G "MAIN" 0 2884 "void()" `1659 
+F G "MAIN" 0 2885 "void()" `1659 
 C L "MAIN" 0 22 1 "FUNCTION"
-V L "set_on_time" 0 2933 "int16" `1662 
-C L "MAIN" 0 22 1 "FUNCTION"
-C L "MAIN" 0 22 1 "FUNCTION"
+V L "set_on_time" 0 2934 "int16" `1662 
 C L "MAIN" 0 22 1 "FUNCTION"
 C L "MAIN" 0 22 1 "FUNCTION"
 C L "MAIN" 0 22 1 "FUNCTION"
-V L "t" 0 2954 "int8" `1663 
-V L "base" 0 2955 "int8" `1664 
-V L "prog_prev" 0 3114 "int8" `1669 
-V L "show_welcome_once" 0 3115 "int1" `1670 
-V L "ct_ratio" 0 3116 "int8" `1671 
+C L "MAIN" 0 22 1 "FUNCTION"
+C L "MAIN" 0 22 1 "FUNCTION"
+V L "t" 0 2955 "int8" `1663 
+V L "base" 0 2956 "int8" `1664 
+C L "MAIN" 0 22 1 "FUNCTION"
+V L "juice_enable" 0 3024 "int8" `1665 
+V L "ub_limit" 0 3029 "int16" `1666 
+V L "ir_1min_int" 0 3031 "int16" `1667 
+V L "ir_10min_int" 0 3032 "int16" `1668 
+V L "ir_1min" 0 3035 "float" `1669 
+V L "ir_10min" 0 3036 "float" `1670 
+V L "pii" 0 3037 "float" `1671 
+V L "prog_prev" 0 3132 "int8" `1676 
+V L "show_welcome_once" 0 3133 "int1" `1677 
+V L "ct_ratio" 0 3134 "int8" `1678 
 C L "MAIN" 0 22 1 "FUNCTION"
 F B "reset_cpu" 0 0
 F B "abs" 1 0

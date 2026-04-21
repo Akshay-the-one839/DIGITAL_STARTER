@@ -1,19 +1,19 @@
 
-ROM used:   35430/65536 (54%)
-            35430/65536 (54%) including unused fragments
+ROM used:   36394/65536 (56%)
+            36394/65536 (56%) including unused fragments
 
-            4.0 Average locations per line
-            10.9 Average locations per statement
+            4.1 Average locations per line
+            11.1 Average locations per statement
 
-RAM used:   747/3896 (19%) at main() level
-            932/3896 (24%) worst case
+RAM used:   749/3896 (19%) at main() level
+            968/3896 (25%) worst case
 
 Stack used: 8 worst case (6 in main + 2 for interrupts)
 Stack size: 31
 
 Lines Stmts  %   Files
 ----- ----- ---  -----
- 3285  2552  78  3ph_digi_starter.c
+ 3303  2566  78  3ph_digi_starter.c
   989     0   0  ..\Program Files (x86)\PICC\Devices\18F26K22.h
  1351   359  11  ..\Program Files (x86)\PICC\Drivers\stdlib.h
    32     0   0  ..\Program Files (x86)\PICC\Drivers\stddef.h
@@ -23,7 +23,7 @@ Lines Stmts  %   Files
   112    66   2  3WireLCD.c
   329    25   1  ..\Program Files (x86)\PICC\Drivers\internal_eeprom.c
 ----- -----
- 8778  3259 Total
+ 8796  3273 Total
 
 Page ROM  %  RAM   Vol Diff  Functions:
 ---- --- --- ---   --- ----  ----------
@@ -46,11 +46,11 @@ Page ROM  %  RAM   Vol Diff  Functions:
 0     68   0    6             @WRITEBITA
 0     38   0    0             @goto12443
 0    280   0    0  1421  7.8  timer1_isr
-0     64   0    1   190  3.1  mon
+0     66   0    1   190  3.1  mon
 0    116   0    1   223  3.2  moff
 0    164   0    0   480  4.2  change
 0    372   1    0   938  5.3  voltage
-0    656   1    0  1068  5.3  amps
+0    676   1    0  1068  5.3  amps
 0    608   1    6   617  6.2  new_value
 0    130   0    0   659  4.8  display_sequence
 0     14   0    0   100  2.1  reset_sequence
@@ -60,9 +60,9 @@ Page ROM  %  RAM   Vol Diff  Functions:
 0     14   0    0             @const1325
 0     32   0    2             @PSTRINGC_1109
 0     16   0    0             @const1327
-0    236   0    2  1111  7.2  handle_menu_navigation
+0    232   0    2  1111  7.2  handle_menu_navigation
 0     16   0    0             @const1328
-0    650   1    2  2885  8.0  handle_phase_menu
+0    656   1    2  2885  8.0  handle_phase_menu
 0     16   0    0             @const1330
 0     20   0    0             @const1334
 0     20   0    0             @const1335
@@ -76,12 +76,12 @@ Page ROM  %  RAM   Vol Diff  Functions:
 0     12   0    0             @const1343
 0    672   1   14  2906 12.8  handle_parameter_input
 0      8   0    0             @const1349
-0     42   0    3             @PSTRINGCN_1109
+0     40   0    3             @PSTRINGCN_1109
 0      8   0    0             @const1352
 0      8   0    0             @const1353
 0      8   0    0             @const1354
-0    256   0    9             @PRINTF_LD_1109
-0    552   1    2  2275  6.9  handle_juice_menu
+0    254   0    9             @PRINTF_LD_1109
+0    556   1    2  2275  6.9  handle_juice_menu
 0     16   0    0             @const1360
 0     18   0    0             @const1361
 0     18   0    0             @const1362
@@ -91,7 +91,7 @@ Page ROM  %  RAM   Vol Diff  Functions:
 0     18   0    0             @const1366
 0     18   0    0             @const1367
 0     18   0    0             @const1368
-0   1224   2    4  5633 11.1  handle_power_on_delay
+0   1288   2    4  5633 11.1  handle_power_on_delay
 0     16   0    0             @const1376
 0     16   0    0             @const1377
 0     16   0    0             @const1378
@@ -101,7 +101,7 @@ Page ROM  %  RAM   Vol Diff  Functions:
 0     18   0    0             @const1384
 0     10   0    0             @const1385
 0     12   0    0             @const1386
-0   1158   2    4  5429 12.2  handle_star_delta_delay
+0   1142   2    4  5429 12.2  handle_star_delta_delay
 0     16   0    0             @const1393
 0     16   0    0             @const1394
 0     14   0    0             @const1395
@@ -110,7 +110,7 @@ Page ROM  %  RAM   Vol Diff  Functions:
 0     18   0    0             @const1400
 0     10   0    0             @const1401
 0     12   0    0             @const1402
-0   3738   5   12 10539 11.0  handle_voltage_setting
+0   3736   5   12 10539 11.0  handle_voltage_setting
 0     18   0    0             @const1409
 0     18   0    0             @const1417
 0     18   0    0             @const1418
@@ -124,7 +124,7 @@ Page ROM  %  RAM   Vol Diff  Functions:
 0     18   0    0             @const1439
 0     18   0    0             @const1440
 0     18   0    0             @const1441
-0   1228   2    4  5622 11.1  handle_dryrun_delay
+0   1292   2    4  5622 11.1  handle_dryrun_delay
 0     18   0    0             @const1449
 0     18   0    0             @const1450
 0     18   0    0             @const1451
@@ -134,7 +134,7 @@ Page ROM  %  RAM   Vol Diff  Functions:
 0     18   0    0             @const1457
 0     10   0    0             @const1458
 0     12   0    0             @const1459
-0   1228   2    4  5622 11.1  handle_dryrun_restart
+0   1292   2    4  5622 11.1  handle_dryrun_restart
 0     18   0    0             @const1467
 0     18   0    0             @const1468
 0     18   0    0             @const1469
@@ -144,7 +144,7 @@ Page ROM  %  RAM   Vol Diff  Functions:
 0     18   0    0             @const1475
 0     10   0    0             @const1476
 0     12   0    0             @const1477
-0   1140   2    4  5382 12.2  handle_dryrun_trip
+0   1184   2    4  5382 12.2  handle_dryrun_trip
 0     18   0    0             @const1485
 0     18   0    0             @const1486
 0     16   0    0             @const1487
@@ -153,7 +153,7 @@ Page ROM  %  RAM   Vol Diff  Functions:
 0     18   0    0             @const1492
 0     10   0    0             @const1493
 0     12   0    0             @const1494
-0   1186   2    4  5622 11.1  handle_set_on_time
+0   1230   2    4  5622 11.1  handle_set_on_time
 0     18   0    0             @const1502
 0     18   0    0             @const1503
 0     18   0    0             @const1504
@@ -163,7 +163,7 @@ Page ROM  %  RAM   Vol Diff  Functions:
 0     18   0    0             @const1510
 0     10   0    0             @const1511
 0     12   0    0             @const1512
-0   2366   3    5  8835 13.5  handle_cyclic_timer
+0   2338   3    5  8835 13.5  handle_cyclic_timer
 0     16   0    0             @const1520
 0     16   0    0             @const1523
 0     44   0    3             @DIV88
@@ -174,9 +174,9 @@ Page ROM  %  RAM   Vol Diff  Functions:
 0      6   0    0             @const1556
 0     44   0    0             @goto15097
 0     44   0    0             @goto15130
-0     16   0    0 18594 14.6  @const1565
-0     24   0    0             @const1566
-0    726   1    2  3210  7.5  handle_auto_restart_mode
+0     18   0    0             @const1565
+0     26   0    0             @const1566
+0    738   1    2  3210  7.5  handle_auto_restart_mode
 0     16   0    0             @const1568
 0     20   0    0             @const1573
 0     20   0    0             @const1574
@@ -186,17 +186,17 @@ Page ROM  %  RAM   Vol Diff  Functions:
 0     14   0    0             @const1578
 0     14   0    0             @const1579
 0     18   0    0             @const1580
-0     10   0    0 18594 14.6  @const1581
+0     10   0    0             @const1581
 0     12   0    0             @const1582
-0    854   1    4  3168  8.5  handle_unbalance_trip_setting
+0    884   1    4  3168  8.5  handle_unbalance_trip_setting
 0     20   0    0             @const1586
 0     14   0    0             @const1589
 0     14   0    0             @const1590
 0     14   0    0             @const1591
 0     18   0    0             @const1592
-0     10   0    0 18594 14.6  @const1593
+0     10   0    0             @const1593
 0     12   0    0             @const1594
-0   1076   2    3  3752 10.9  handle_ct_selection_menu
+0   1070   1    3  3752 10.9  handle_ct_selection_menu
 0     38   0    0             @const1596
 0     32   0    0             @const1599
 0     18   0    0             @const1608
@@ -204,14 +204,14 @@ Page ROM  %  RAM   Vol Diff  Functions:
 0     10   0    0             @const1611
 0     16   0    0             @const1612
 0     18   0    0             @const1613
-0     10   0    0 18594 14.6  @const1614
+0     10   0    0             @const1614
 0     12   0    0             @const1615
-0   2342   3    8  6789 10.1  handle_polarization_index_menu
+0   2332   3    8  6789 10.1  handle_polarization_index_menu
 0     18   0    0             @const1627
 0     18   0    0             @const1628
 0     68   0    5             @FTOSD
 0    148   0   13             @DIV3232
-0    430   1   13             @PRINTF_L32D_1109FPFPF
+0    432   1   13             @PRINTF_L32D_1109FPFPF
 0     14   0    0             @const1637
 0     18   0    0             @const1638
 0     18   0    0             @const1639
@@ -222,39 +222,39 @@ Page ROM  %  RAM   Vol Diff  Functions:
 0     18   0    0             @const1644
 0     18   0    0             @const1645
 0     18   0    0             @const1646
-0     18   0    0 18594 14.6  @const1647
-0     18   0    0 18594 14.6  @const1648
+0     18   0    0             @const1647
+0     18   0    0             @const1648
 0    190   0    0   973  4.3  handle_menu
-0   5846   8    6 18549 14.6  MAIN
-0     16   0    0             @const1665
-0     16   0    0             @const1666
-0     16   0    0             @const1667
-0     18   0    0             @const1668
+0   6520   9    8 19964 14.7  MAIN
 0     16   0    0             @const1672
-0     14   0    0             @const1673
-0     18   0    0             @const1682
-0      4   0    0             @const1683
-0      4   0    0             @const1684
+0     16   0    0             @const1673
+0     16   0    0             @const1674
+0     18   0    0             @const1675
+0     16   0    0             @const1679
+0     14   0    0             @const1680
+0     18   0    0             @const1689
+0      4   0    0             @const1690
+0      4   0    0             @const1691
  Inline         0             @cinit1
 
 Program metrics:
-    Functions               41
-    Statements              3259
-    Comments                1204
-    Volume (V)              332947
-    Difficulty (D)          349.0
-    Effort to implement (E) 116183377
-    Time to implement (T)   1792 hours, 57 minutes
-    Est Delivered Bugs (B)  79
-    Cyclomatic Complexity   625
-    Maintainability (MI)    93
+    Functions               35
+    Statements              3273
+    Comments                1205
+    Volume (V)              169278
+    Difficulty (D)          259.7
+    Effort to implement (E) 43969491
+    Time to implement (T)   678 hours, 32 minutes
+    Est Delivered Bugs (B)  42
+    Cyclomatic Complexity   408
+    Maintainability (MI)    67
 
  Segment     Used  Free
 -----------  ----  ----
 00000-00002     4  0  
 00004-00006     0  4  
 00008-000A0   154  0  
-000A2-0FFFE  35272  30102  
+000A2-0FFFE  36236  29138  
 
 
 
