@@ -85,12 +85,12 @@ char* menu_titles[] = {
    "1.PHASE SETTING",
    "2.JUICE CONTROL",       
    "3.POWER ON DELAY",
-   "4.SET ON TIME",         
-   "5.STAR DELTA DLY",
-   "6.VOLT SETTING",    
-   "7.DRY RUN DELAY",      
-   "8.DRYRUN RESTART",      
-   "9.DRYRUN TRIP",         
+   "4.STAR DELTA DLY",
+   "5.VOLT SETTING",    
+   "6.DRY RUN DELAY",      
+   "7.DRYRUN RESTART",      
+   "8.DRYRUN TRIP",         
+   "9.SET ON TIME",         
    "10.CYCLIC TIMER",      
    "11.AUTO START",         
    "12.UNBALANCED TRP",    
@@ -1098,10 +1098,10 @@ void handle_star_delta_delay() {
          lcd_cmd(LCD_CLEAR);
          lcd_goto(1, 1);   
          if (increment_mode == 1) {
-            printf(lcd_out, "5.STAR DELT NRM");
+            printf(lcd_out, "4.STAR DELT NRM");
          }
          else {
-            printf(lcd_out, "5.STAR DELT FST");
+            printf(lcd_out, "4.STAR DELT FST");
          }
          
          lcd_goto(1, 2);  
@@ -1247,7 +1247,7 @@ void handle_voltage_setting(void) {
       if(sub_sel != last_sub_sel) {
          lcd_cmd(LCD_CLEAR);
          lcd_goto(1, 1);
-         printf(lcd_out, "6.VOLT SETTING  ");
+         printf(lcd_out, "5.VOLT SETTING  ");
          lcd_goto(1, 2);
          printf(lcd_out, "%s", volt_submenu[sub_sel]);
          last_sub_sel = sub_sel;
@@ -1277,7 +1277,7 @@ void handle_voltage_setting(void) {
             delay_ms(50);
 
             // --------------------------------
-            // OPTION 0  LOW VOLT
+            // OPTION 0 — LOW VOLT
             // --------------------------------
             if(sub_sel == 0) {
 
@@ -1330,7 +1330,7 @@ void handle_voltage_setting(void) {
             }
 
             // --------------------------------
-            // OPTION 1  HIGH VOLT
+            // OPTION 1 — HIGH VOLT
             // --------------------------------
             else if(sub_sel == 1) {
 
@@ -1383,7 +1383,7 @@ void handle_voltage_setting(void) {
             }
 
             // --------------------------------
-            // OPTION 2  OVERLOAD
+            // OPTION 2 — OVERLOAD
             // --------------------------------
             else if(sub_sel == 2) {
 
@@ -1436,7 +1436,7 @@ void handle_voltage_setting(void) {
             }
 
             // --------------------------------
-            // OPTION 3  EXIT -> NEXT MENU
+            // OPTION 3 — EXIT -> NEXT MENU
             // --------------------------------
             else if(sub_sel == 3) {
                lcd_cmd(LCD_CLEAR);
@@ -1483,13 +1483,13 @@ void handle_dryrun_delay() {
          lcd_cmd(LCD_CLEAR);
          lcd_goto(1, 1);   
          if (increment_mode == 1) {
-            printf(lcd_out, "7.DRYRUN DLY NORM");
+            printf(lcd_out, "5.DRYRUN DLY NORM");
          }
          else if (increment_mode == 10) {
-            printf(lcd_out, "7.DRYRUN DLY FAST");
+            printf(lcd_out, "5.DRYRUN DLY FAST");
          }
          else {
-            printf(lcd_out, "7.DRYRUN DLY SUFA");
+            printf(lcd_out, "5.DRYRUN DLY SUFA");
          }
          
          lcd_goto(1, 2);   
@@ -1641,13 +1641,13 @@ void handle_dryrun_restart() {
          lcd_cmd(LCD_CLEAR);
          lcd_goto(1, 1); 
          if (increment_mode == 1) {
-            printf(lcd_out, "8.DRYRUN RST NORM");
+            printf(lcd_out, "6.DRYRUN RST NORM");
          }
          else if (increment_mode == 10) {
-            printf(lcd_out, "8.DRYRUN RST FAST");
+            printf(lcd_out, "6.DRYRUN RST FAST");
          }
          else {
-            printf(lcd_out, "8.DRYRUN RST SUFA");
+            printf(lcd_out, "6.DRYRUN RST SUFA");
          }
          
          lcd_goto(1, 2); 
@@ -1799,10 +1799,10 @@ void handle_dryrun_trip() {
          lcd_cmd(LCD_CLEAR);
          lcd_goto(1, 1); 
          if (increment_mode == 1) {
-            printf(lcd_out, "9.DRYRUN TRP NRM");
+            printf(lcd_out, "7.DRYRUN TRP NRM");
          }
          else {
-            printf(lcd_out, "9.DRYRUN TRP FST");
+            printf(lcd_out, "7.DRYRUN TRP FST");
          }
          
          lcd_goto(1, 2); 
@@ -1933,7 +1933,7 @@ void handle_set_on_time() {
    while (input(ENCODER_SW) == 0);
    
    int16 on_time = make16(read_eeprom(0x49), read_eeprom(0x48));
-   if (on_time > 60) on_time = 60;
+   if (on_time > 999) on_time = 999;
    if (on_time < 0)   on_time = 0;
    
    int16 original_time = on_time;
@@ -1946,19 +1946,22 @@ void handle_set_on_time() {
    delay_ms(100);
    
    while (1) {
-      if (on_time > 60) on_time = 60;
+      if (on_time > 999) on_time = 999;
       if (on_time < 0)   on_time = 0;
       
       if (on_time != last_value || increment_mode != last_mode) {
          lcd_cmd(LCD_CLEAR);
          lcd_goto(1, 1);
          if (increment_mode == 1) {
-            printf(lcd_out, "4.SET ON TIME NRM");
+            printf(lcd_out, "9.SET ON TIME NRM");
          }
-         else  {
-            printf(lcd_out, "4.SET ON TIME FST");
+         else if (increment_mode == 10) {
+            printf(lcd_out, "9.SET ON TIME FST");
          }
-                 
+         else {
+            printf(lcd_out, "9.SET ON TIME SUF");
+         }
+         
          lcd_goto(1, 2);
          printf(lcd_out, "   %ld sec   ", (long)on_time);
          
@@ -1967,9 +1970,11 @@ void handle_set_on_time() {
          delay_ms(50);
       }
       
-       if (input(key1) == 0) {
+      if (input(KEY1) == 0) {
          delay_ms(50);
-         increment_mode = (increment_mode == 1) ? 10 : 1;
+         if (increment_mode == 1) increment_mode = 10;
+         else if (increment_mode == 10) increment_mode = 100;
+         else increment_mode = 1;
          last_mode = -1;
          int8 timeout = 50;
          while (input(key1) == 0 && timeout > 0) {
@@ -1991,7 +1996,7 @@ void handle_set_on_time() {
       
       if (input(ENCODER_A) == 0 && input(ENCODER_B) != 0 && !encoder_blocked) {
          delay_ms(5);
-         if (on_time <= (60 - increment_mode)) {
+         if (on_time <= (999 - increment_mode)) {
             on_time += increment_mode;
             encoder_blocked = 0;
          } else {
@@ -2021,7 +2026,7 @@ void handle_set_on_time() {
             button_pressed_flag = 1;
             
             if (on_time != original_time) {
-               if (on_time > 60) on_time = 60;
+               if (on_time > 999) on_time = 999;
                if (on_time < 0)   on_time = 0;
                
                write_eeprom(0x48, make8(on_time, 0));
@@ -2079,209 +2084,151 @@ void handle_set_on_time() {
 
 void handle_cyclic_timer(void) {
    while (input(ENCODER_SW) == 0);
-   delay_ms(50);
    
    int8 eeprom_base[] = {0x20, 0x24, 0x28, 0x2C, 0x30};
+   int8 t;
    
-   char* timer_submenu[] = {
-      "> TIMER 1      ",
-      "> TIMER 2      ",
-      "> TIMER 3      ",
-      "> TIMER 4      ",
-      "> TIMER 5      ",
-      "> EXIT->NEXT   "
-   };
-   int8 total_options = 6;
-   int8 sub_sel = 0;
-   int8 last_sub_sel = 255;
+   for(t = 0; t < 5; t++) {
    
-   while(1) {
-      // -- Sub Menu Display --
-      if(sub_sel != last_sub_sel) {
-         lcd_cmd(LCD_CLEAR);
-         lcd_goto(1, 1);
-         printf(lcd_out, "10.CYCLIC TIMER");
-         lcd_goto(1, 2);
-         printf(lcd_out, "%s", timer_submenu[sub_sel]);
-         last_sub_sel = sub_sel;
-      }
+      lcd_cmd(LCD_CLEAR);
+      lcd_goto(1, 1);
+      printf(lcd_out, "CYCLIC TIMER %d", t+1);
+      lcd_goto(1, 2);
+      printf(lcd_out, "Press to ENTER");
       
-      // -- Encoder Rotate --
-      if(input(ENCODER_A) == 0 && input(ENCODER_B) != 0) {
-         delay_ms(5);
-         sub_sel++;
-         if(sub_sel >= total_options) sub_sel = 0;
-         while(input(ENCODER_A) == 0);
-         delay_ms(20);
-      }
-      else if(input(ENCODER_B) == 0 && input(ENCODER_A) != 0) {
-         delay_ms(5);
-         if(sub_sel == 0) sub_sel = total_options - 1;
-         else sub_sel--;
-         while(input(ENCODER_B) == 0);
-         delay_ms(20);
-      }
+      while(input(ENCODER_SW) == 1);
+      delay_ms(20);
+      while(input(ENCODER_SW) == 0);
+      delay_ms(50);
       
-      // -- SW Press ? Enter selected option --
-      if(input(ENCODER_SW) == 0) {
-         delay_ms(20);
-         if(input(ENCODER_SW) == 0) {
-            while(input(ENCODER_SW) == 0);
-            delay_ms(50);
+      int8 base = eeprom_base[t];
+      
+      int8 on_hr  = read_eeprom(base + 0);
+      int8 on_min = read_eeprom(base + 1);
+      int8 off_hr = read_eeprom(base + 2);
+      int8 off_min= read_eeprom(base + 3);
+      
+      if(on_hr  > 23) on_hr  = 0;
+      if(on_min > 59) on_min = 0;
+      if(off_hr > 23) off_hr = 0;
+      if(off_min> 59) off_min= 0;
+      
+      int8 orig_on_hr  = on_hr;
+      int8 orig_on_min = on_min;
+      int8 orig_off_hr = off_hr;
+      int8 orig_off_min= off_min;
+      
+      int8 field = 0;
+      int8 last_field   = 255;
+      int8 last_on_hr   = 255;
+      int8 last_on_min  = 255;
+      int8 last_off_hr  = 255;
+      int8 last_off_min = 255;
+      int1 button_pressed_flag = 0;
+      
+      lcd_cmd(LCD_CLEAR);
+      
+      while(1) {
+      
+         if(field != last_field || on_hr != last_on_hr || 
+            on_min != last_on_min || off_hr != last_off_hr || 
+            off_min != last_off_min) {
             
-            if(sub_sel == 5) {
-               break; // Exit the loop to advance to next menu
+            lcd_goto(1, 1);
+            printf(lcd_out, "ON :");
+            if(field == 0) printf(lcd_out, "[%02u]", on_hr);
+            else           printf(lcd_out, " %02u ", on_hr);
+            printf(lcd_out, ":");
+            if(field == 1) printf(lcd_out, "[%02u] ", on_min);
+            else           printf(lcd_out, " %02u  ", on_min);
+            
+            lcd_goto(1, 2);
+            printf(lcd_out, "OFF:");
+            if(field == 2) printf(lcd_out, "[%02u]", off_hr);
+            else           printf(lcd_out, " %02u ", off_hr);
+            printf(lcd_out, ":");
+            if(field == 3) printf(lcd_out, "[%02u] ", off_min);
+            else           printf(lcd_out, " %02u  ", off_min);
+            
+            last_field   = field;
+            last_on_hr   = on_hr;
+            last_on_min  = on_min;
+            last_off_hr  = off_hr;
+            last_off_min = off_min;
+         }
+         
+         if(input(ENCODER_A) == 0 && input(ENCODER_B) != 0) {
+            delay_ms(5);
+            switch(field) {
+               case 0: if(on_hr  < 23) on_hr++;  break;
+               case 1: if(on_min < 59) on_min++; break;
+               case 2: if(off_hr < 23) off_hr++; break;
+               case 3: if(off_min< 59) off_min++;break;
             }
-            else {
-               // Timer editing block
-               int8 t = sub_sel;
+            while(input(ENCODER_A) == 0);
+            delay_ms(30);
+         }
+         else if(input(ENCODER_B) == 0 && input(ENCODER_A) != 0) {
+            delay_ms(5);
+            switch(field) {
+               case 0: if(on_hr  > 0) on_hr--;  break;
+               case 1: if(on_min > 0) on_min--; break;
+               case 2: if(off_hr > 0) off_hr--; break;
+               case 3: if(off_min> 0) off_min--;break;
+            }
+            while(input(ENCODER_B) == 0);
+            delay_ms(30);
+         }
+         
+         if(input(KEY1) == 0) {
+            delay_ms(30);
+            field = (field + 1) % 4;
+            int8 timeout = 50;
+            while(input(KEY1) == 0 && timeout > 0) {
+               delay_ms(10);
+               timeout--;
+            }
+         }
+         
+         if(input(ENCODER_SW) == 0 && button_pressed_flag == 0) {
+            delay_ms(20);
+            if(input(ENCODER_SW) == 0) {
+               button_pressed_flag = 1;
                
-               lcd_cmd(LCD_CLEAR);
+               write_eeprom(base + 0, on_hr);
+               write_eeprom(base + 1, on_min);
+               write_eeprom(base + 2, off_hr);
+               write_eeprom(base + 3, off_min);
+               
+              lcd_cmd(LCD_CLEAR);
                lcd_goto(1, 1);
-               printf(lcd_out, "CYCLIC TIMER %d", t+1);
+               printf(lcd_out, "TIMER %d SAVED!", t+1);
                lcd_goto(1, 2);
-               printf(lcd_out, "Press to ENTER");
+               printf(lcd_out, "ON%02u:%02u OF%02u:%02u",
+                      on_hr, on_min, off_hr, off_min);
                
+               // Wait for button release first (from save press)
+               while(input(ENCODER_SW) == 0);
+               delay_ms(50);
+               
+               // Stay on saved screen - wait for fresh ENTER press
                while(input(ENCODER_SW) == 1);
                delay_ms(20);
                while(input(ENCODER_SW) == 0);
                delay_ms(50);
                
-               int8 base = eeprom_base[t];
-               
-               int8 on_hr  = read_eeprom(base + 0);
-               int8 on_min = read_eeprom(base + 1);
-               int8 off_hr = read_eeprom(base + 2);
-               int8 off_min= read_eeprom(base + 3);
-               
-               if(on_hr  > 23) on_hr  = 0;
-               if(on_min > 59) on_min = 0;
-               if(off_hr > 23) off_hr = 0;
-               if(off_min> 59) off_min= 0;
-               
-               int8 orig_on_hr  = on_hr;
-               int8 orig_on_min = on_min;
-               int8 orig_off_hr = off_hr;
-               int8 orig_off_min= off_min;
-               
-               int8 field = 0;
-               int8 last_field   = 255;
-               int8 last_on_hr   = 255;
-               int8 last_on_min  = 255;
-               int8 last_off_hr  = 255;
-               int8 last_off_min = 255;
-               int1 button_pressed_flag = 0;
-               
-               lcd_cmd(LCD_CLEAR);
-               
-               while(1) {
-               
-                  if(field != last_field || on_hr != last_on_hr || 
-                     on_min != last_on_min || off_hr != last_off_hr || 
-                     off_min != last_off_min) {
-                     
-                     lcd_goto(1, 1);
-                     printf(lcd_out, "ON :");
-                     if(field == 0) printf(lcd_out, "[%02u]", on_hr);
-                     else           printf(lcd_out, " %02u ", on_hr);
-                     printf(lcd_out, ":");
-                     if(field == 1) printf(lcd_out, "[%02u] ", on_min);
-                     else           printf(lcd_out, " %02u  ", on_min);
-                     
-                     lcd_goto(1, 2);
-                     printf(lcd_out, "OFF:");
-                     if(field == 2) printf(lcd_out, "[%02u]", off_hr);
-                     else           printf(lcd_out, " %02u ", off_hr);
-                     printf(lcd_out, ":");
-                     if(field == 3) printf(lcd_out, "[%02u] ", off_min);
-                     else           printf(lcd_out, " %02u  ", off_min);
-                     
-                     last_field   = field;
-                     last_on_hr   = on_hr;
-                     last_on_min  = on_min;
-                     last_off_hr  = off_hr;
-                     last_off_min = off_min;
-                  }
-                  
-                  if(input(ENCODER_A) == 0 && input(ENCODER_B) != 0) {
-                     delay_ms(5);
-                     switch(field) {
-                        case 0: if(on_hr  < 23) on_hr++;  break;
-                        case 1: if(on_min < 59) on_min++; break;
-                        case 2: if(off_hr < 23) off_hr++; break;
-                        case 3: if(off_min< 59) off_min++;break;
-                     }
-                     while(input(ENCODER_A) == 0);
-                     delay_ms(30);
-                  }
-                  else if(input(ENCODER_B) == 0 && input(ENCODER_A) != 0) {
-                     delay_ms(5);
-                     switch(field) {
-                        case 0: if(on_hr  > 0) on_hr--;  break;
-                        case 1: if(on_min > 0) on_min--; break;
-                        case 2: if(off_hr > 0) off_hr--; break;
-                        case 3: if(off_min> 0) off_min--;break;
-                     }
-                     while(input(ENCODER_B) == 0);
-                     delay_ms(30);
-                  }
-                  
-                  if(input(KEY1) == 0) {
-                     delay_ms(30);
-                     field = (field + 1) % 4;
-                     int8 timeout = 50;
-                     while(input(KEY1) == 0 && timeout > 0) {
-                        delay_ms(10);
-                        timeout--;
-                     }
-                  }
-                  
-                  if(input(ENCODER_SW) == 0 && button_pressed_flag == 0) {
-                     delay_ms(20);
-                     if(input(ENCODER_SW) == 0) {
-                        button_pressed_flag = 1;
-                        
-                        write_eeprom(base + 0, on_hr);
-                        write_eeprom(base + 1, on_min);
-                        write_eeprom(base + 2, off_hr);
-                        write_eeprom(base + 3, off_min);
-                        
-                    lcd_cmd(LCD_CLEAR);
-
-                  lcd_goto(1,1);
-                  printf(lcd_out,"ON  TIMER %d  OFF", t+1);
-                  
-                  lcd_goto(1,2);
-                  printf(lcd_out,"%02u:%02u      %02u:%02u", on_hr, on_min, off_hr, off_min);
-                        
-                        // Wait for button release first (from save press)
-                        while(input(ENCODER_SW) == 0);
-                        delay_ms(50);
-                        
-                        // Stay on saved screen - wait for fresh ENTER press
-                        while(input(ENCODER_SW) == 1);
-                        delay_ms(20);
-                        while(input(ENCODER_SW) == 0);
-                        delay_ms(50);
-                        
-                        break;
-                     }
-                     else {
-                        button_pressed_flag = 0;
-                     }
-                  }
-                  
-                  if(input(ENCODER_SW) != 0) {
-                     button_pressed_flag = 0;
-                  }
-                  
-                  delay_ms(1);
-               }
-               
-               // After breaking from edit loop, force redraw of submenu
-               last_sub_sel = 255; 
+               break;
+            }
+            else {
+               button_pressed_flag = 0;
             }
          }
+         
+         if(input(ENCODER_SW) != 0) {
+            button_pressed_flag = 0;
+         }
+         
+         delay_ms(1);
       }
    }
    
@@ -2289,6 +2236,7 @@ void handle_cyclic_timer(void) {
    delay_ms(100);
    advance_to_next_menu();
 }
+
 void handle_auto_restart_mode() {
    while (input(ENCODER_SW) == 0);
    lcd_cmd(LCD_CLEAR); 
@@ -2791,12 +2739,11 @@ void handle_polarization_index_menu(void) {
 // ==================== ENHANCED MENU HANDLER ====================
 
 void handle_menu(void) {
-   while (prog == 1) {
-      if (in_menu_selection) {
-         handle_menu_navigation();
-      }
-      
-      if (!in_menu_selection && prog == 1) {
+   if (in_menu_selection) {
+      handle_menu_navigation();
+   }
+   
+   if (!in_menu_selection && prog == 1) {
       if (menu_number == 1) {
          handle_phase_menu();
       }
@@ -2807,22 +2754,22 @@ void handle_menu(void) {
          handle_power_on_delay();
       }
       else if (menu_number == 4) {
-         handle_set_on_time();
-      }
-      else if (menu_number == 5) {
          handle_star_delta_delay();
       }
-      else if (menu_number == 6) {
+      else if (menu_number == 5) {
          handle_voltage_setting();
       }
-      else if (menu_number == 7) {
+      else if (menu_number == 6) {
          handle_dryrun_delay();
       }
-      else if (menu_number == 8) {
+      else if (menu_number == 7) {
          handle_dryrun_restart();
       }
+      else if (menu_number == 8) {
+         handle_dryrun_trip();
+      }
       else if (menu_number == 9) {
-         handle_dryrun_trip();        
+         handle_set_on_time();        
       }
       else if (menu_number == 10) {
          handle_cyclic_timer();      
@@ -2839,7 +2786,6 @@ void handle_menu(void) {
       else if (menu_number == 14) {
          handle_polarization_index_menu(); 
       }
-   }
    }
 }
 
@@ -3014,23 +2960,6 @@ void main() {
       write_eeprom(0x44, make8(over_cb, 0));
       write_eeprom(0x45, make8(over_cb, 1));
    }
-    // ===== NEW: Load remaining menu EEPROM values =====
-
- int8  juice_enable = read_eeprom(0x03);
-   if (juice_enable != 0 && juice_enable != 1) juice_enable = 1;
-
-
-
-    int16 ub_limit = make16(read_eeprom(0x27), read_eeprom(0x26));
-   if (ub_limit > 100) ub_limit = 30;
-   int16 ir_1min_int  = make16(read_eeprom(0x3B), read_eeprom(0x3A));
-  int16 ir_10min_int = make16(read_eeprom(0x3D), read_eeprom(0x3C));
-   if (ir_1min_int  < 5  || ir_1min_int  > 1000) ir_1min_int  = 5;
-   if (ir_10min_int < 5  || ir_10min_int > 1000) ir_10min_int = 10;
-  float  ir_1min  = (float)ir_1min_int  / 10.0;
-  float  ir_10min = (float)ir_10min_int / 10.0;
-  float pii;
-   if (ir_1min > 0.0) pii = ir_10min / ir_1min;
    
    lcd_initialize();
    lcd_cmd(LCD_CLEAR); 
@@ -3254,6 +3183,7 @@ void main() {
          disable_interrupts(int_TIMER1);  
          lcd_cmd(LCD_CLEAR); 
          handle_menu();
+         lcd_cmd(LCD_CLEAR); 
          enable_interrupts(int_AD);
          enable_interrupts(int_TIMER1);
          enable_interrupts(GLOBAL);

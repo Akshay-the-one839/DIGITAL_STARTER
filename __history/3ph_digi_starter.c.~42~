@@ -1955,10 +1955,13 @@ void handle_set_on_time() {
          if (increment_mode == 1) {
             printf(lcd_out, "4.SET ON TIME NRM");
          }
-         else  {
+         else if (increment_mode == 10) {
             printf(lcd_out, "4.SET ON TIME FST");
          }
-                 
+         else {
+            printf(lcd_out, "4.SET ON TIME SUF");
+         }
+         
          lcd_goto(1, 2);
          printf(lcd_out, "   %ld sec   ", (long)on_time);
          
@@ -1967,9 +1970,11 @@ void handle_set_on_time() {
          delay_ms(50);
       }
       
-       if (input(key1) == 0) {
+      if (input(KEY1) == 0) {
          delay_ms(50);
-         increment_mode = (increment_mode == 1) ? 10 : 1;
+         if (increment_mode == 1) increment_mode = 10;
+         else if (increment_mode == 10) increment_mode = 100;
+         else increment_mode = 1;
          last_mode = -1;
          int8 timeout = 50;
          while (input(key1) == 0 && timeout > 0) {

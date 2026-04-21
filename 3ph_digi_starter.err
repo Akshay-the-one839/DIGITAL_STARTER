@@ -43,21 +43,21 @@
 >>> Warning 203 "3ph_digi_starter.c" Line 1948(1,1): Condition always TRUE
 >>> Warning 205 "3ph_digi_starter.c" Line 1950(1,1): Unsigned variable is never less than zero
 >>> Warning 204 "3ph_digi_starter.c" Line 1950(1,1): Condition always FALSE
->>> Warning 205 "3ph_digi_starter.c" Line 2030(1,1): Unsigned variable is never less than zero
->>> Warning 204 "3ph_digi_starter.c" Line 2030(1,1): Condition always FALSE
->>> Warning 203 "3ph_digi_starter.c" Line 2103(1,1): Condition always TRUE
->>> Warning 203 "3ph_digi_starter.c" Line 2182(1,1): Condition always TRUE
->>> Warning 203 "3ph_digi_starter.c" Line 2314(1,1): Condition always TRUE
->>> Warning 205 "3ph_digi_starter.c" Line 2410(1,1): Unsigned variable is never less than zero
->>> Warning 204 "3ph_digi_starter.c" Line 2410(1,1): Condition always FALSE
->>> Warning 203 "3ph_digi_starter.c" Line 2421(1,1): Condition always TRUE
->>> Warning 203 "3ph_digi_starter.c" Line 2534(1,1): Condition always TRUE
->>> Warning 203 "3ph_digi_starter.c" Line 2632(1,1): Condition always TRUE
->>> Warning 203 "3ph_digi_starter.c" Line 2698(1,1): Condition always TRUE
->>> Warning 203 "3ph_digi_starter.c" Line 3066(1,1): Condition always TRUE
->>> Warning 203 "3ph_digi_starter.c" Line 3096(1,1): Condition always TRUE
->>> Warning 203 "3ph_digi_starter.c" Line 3141(1,1): Condition always TRUE
->>> Warning 203 "3ph_digi_starter.c" Line 3160(1,1): Condition always TRUE
+>>> Warning 205 "3ph_digi_starter.c" Line 2025(1,1): Unsigned variable is never less than zero
+>>> Warning 204 "3ph_digi_starter.c" Line 2025(1,1): Condition always FALSE
+>>> Warning 203 "3ph_digi_starter.c" Line 2098(1,1): Condition always TRUE
+>>> Warning 203 "3ph_digi_starter.c" Line 2177(1,1): Condition always TRUE
+>>> Warning 203 "3ph_digi_starter.c" Line 2309(1,1): Condition always TRUE
+>>> Warning 205 "3ph_digi_starter.c" Line 2405(1,1): Unsigned variable is never less than zero
+>>> Warning 204 "3ph_digi_starter.c" Line 2405(1,1): Condition always FALSE
+>>> Warning 203 "3ph_digi_starter.c" Line 2416(1,1): Condition always TRUE
+>>> Warning 203 "3ph_digi_starter.c" Line 2529(1,1): Condition always TRUE
+>>> Warning 203 "3ph_digi_starter.c" Line 2627(1,1): Condition always TRUE
+>>> Warning 203 "3ph_digi_starter.c" Line 2693(1,1): Condition always TRUE
+>>> Warning 203 "3ph_digi_starter.c" Line 3061(1,1): Condition always TRUE
+>>> Warning 203 "3ph_digi_starter.c" Line 3091(1,1): Condition always TRUE
+>>> Warning 203 "3ph_digi_starter.c" Line 3136(1,1): Condition always TRUE
+>>> Warning 203 "3ph_digi_starter.c" Line 3155(1,1): Condition always TRUE
 >>> Warning 202 "3ph_digi_starter.c" Line 39(6,18): Variable never used:   last_state_A
 >>> Warning 202 "3ph_digi_starter.c" Line 40(5,23): Variable never used:   encoder_last_state
 >>> Warning 202 "3ph_digi_starter.c" Line 57(6,11): Variable never used:   ramp1
@@ -90,13 +90,13 @@
 >>> Warning 202 "3ph_digi_starter.c" Line 189(7,15): Variable never used:   pw_ondly
 >>> Warning 202 "3ph_digi_starter.c" Line 193(6,9): Variable never used:   t_c
 >>> Warning 202 "3ph_digi_starter.c" Line 195(5,14): Variable never used:   c_m_state
->>> Warning 202 "3ph_digi_starter.c" Line 2167(21,31): Variable never used:   orig_on_hr
->>> Warning 202 "3ph_digi_starter.c" Line 2168(21,32): Variable never used:   orig_on_min
->>> Warning 202 "3ph_digi_starter.c" Line 2169(21,32): Variable never used:   orig_off_hr
->>> Warning 202 "3ph_digi_starter.c" Line 2170(21,33): Variable never used:   orig_off_min
->>> Warning 202 "3ph_digi_starter.c" Line 3132(9,18): Variable never used:   prog_prev
->>> Warning 202 "3ph_digi_starter.c" Line 3133(9,26): Variable never used:   show_welcome_once
->>> Warning 202 "3ph_digi_starter.c" Line 3134(9,17): Variable never used:   ct_ratio
-      Memory usage:   ROM=56%      RAM=19% - 25%
+>>> Warning 202 "3ph_digi_starter.c" Line 2162(21,31): Variable never used:   orig_on_hr
+>>> Warning 202 "3ph_digi_starter.c" Line 2163(21,32): Variable never used:   orig_on_min
+>>> Warning 202 "3ph_digi_starter.c" Line 2164(21,32): Variable never used:   orig_off_hr
+>>> Warning 202 "3ph_digi_starter.c" Line 2165(21,33): Variable never used:   orig_off_min
+>>> Warning 202 "3ph_digi_starter.c" Line 3127(9,18): Variable never used:   prog_prev
+>>> Warning 202 "3ph_digi_starter.c" Line 3128(9,26): Variable never used:   show_welcome_once
+>>> Warning 202 "3ph_digi_starter.c" Line 3129(9,17): Variable never used:   ct_ratio
+      Memory usage:   ROM=55%      RAM=19% - 25%
       0 Errors,  99 Warnings.
 Build Successful.

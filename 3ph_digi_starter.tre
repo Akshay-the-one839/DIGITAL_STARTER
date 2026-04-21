@@ -451,7 +451,7 @@
    ³  ³  ³  ³  ÀÄ*
    ³  ³  ³  ÃÄ@delay_ms2  0/40  Ram=1
    ³  ³  ³  ÀÄ@delay_ms2  0/40  Ram=1
-   ³  ³  ÃÄhandle_set_on_time  0/1230  Ram=4
+   ³  ³  ÃÄhandle_set_on_time  0/1192  Ram=4
    ³  ³  ³  ÃÄ@delay_ms2  0/40  Ram=1
    ³  ³  ³  ÃÄLCD_Cmd  0/110  Ram=2
    ³  ³  ³  ³  ÀÄ*
@@ -459,8 +459,6 @@
    ³  ³  ³  ÃÄLCD_Cmd  0/110  Ram=2
    ³  ³  ³  ³  ÀÄ*
    ³  ³  ³  ÃÄLCD_GOTO  0/104  Ram=3
-   ³  ³  ³  ³  ÀÄ*
-   ³  ³  ³  ÃÄ@PSTRINGC_1109  0/32  Ram=2
    ³  ³  ³  ³  ÀÄ*
    ³  ³  ³  ÃÄ@PSTRINGC_1109  0/32  Ram=2
    ³  ³  ³  ³  ÀÄ*
@@ -1093,10 +1091,10 @@
    ³  ³  ³  ÃÄLCD_Out  0/46  Ram=2
    ³  ³  ³  ³  ÀÄ*
    ³  ³  ³  ÃÄ@delay_ms2  0/40  Ram=1
-   ³  ³  ³  ÃÄ@goto15097  0/44  Ram=0
+   ³  ³  ³  ÃÄ@goto15087  0/44  Ram=0
    ³  ³  ³  ÃÄ@delay_ms2  0/40  Ram=1
    ³  ³  ³  ÃÄ@delay_ms2  0/40  Ram=1
-   ³  ³  ³  ÃÄ@goto15130  0/44  Ram=0
+   ³  ³  ³  ÃÄ@goto15120  0/44  Ram=0
    ³  ³  ³  ÃÄ@delay_ms2  0/40  Ram=1
    ³  ³  ³  ÃÄ@delay_ms2  0/40  Ram=1
    ³  ³  ³  ÃÄ@delay_ms2  0/40  Ram=1
@@ -1256,8 +1254,8 @@
    ³  ³  ³  ÃÄ@delay_ms2  0/40  Ram=1
    ³  ³  ³  ÀÄ@delay_ms2  0/40  Ram=1
    ³  ³  ÃÄhandle_ct_selection_menu  0/1070  Ram=3
-   ³  ³  ³  ÃÄ@const1599  0/32  Ram=0
-   ³  ³  ³  ÃÄ@const1599  0/32  Ram=0
+   ³  ³  ³  ÃÄ@const1598  0/32  Ram=0
+   ³  ³  ³  ÃÄ@const1598  0/32  Ram=0
    ³  ³  ³  ÃÄLCD_Cmd  0/110  Ram=2
    ³  ³  ³  ³  ÀÄ*
    ³  ³  ³  ÃÄLCD_GOTO  0/104  Ram=3
@@ -1266,8 +1264,8 @@
    ³  ³  ³  ³  ÀÄ*
    ³  ³  ³  ÃÄLCD_GOTO  0/104  Ram=3
    ³  ³  ³  ³  ÀÄ*
-   ³  ³  ³  ÃÄ@const1596  0/38  Ram=0
-   ³  ³  ³  ÃÄ@const1599  0/32  Ram=0
+   ³  ³  ³  ÃÄ@const1595  0/38  Ram=0
+   ³  ³  ³  ÃÄ@const1598  0/32  Ram=0
    ³  ³  ³  ÃÄLCD_Out  0/46  Ram=2
    ³  ³  ³  ³  ÀÄ*
    ³  ³  ³  ÃÄLCD_Out  0/46  Ram=2
@@ -1285,8 +1283,8 @@
    ³  ³  ³  ÃÄ@delay_ms2  0/40  Ram=1
    ³  ³  ³  ÃÄ@delay_ms2  0/40  Ram=1
    ³  ³  ³  ÃÄ@delay_ms2  0/40  Ram=1
-   ³  ³  ³  ÃÄ@const1599  0/32  Ram=0
-   ³  ³  ³  ÃÄ@const1599  0/32  Ram=0
+   ³  ³  ³  ÃÄ@const1598  0/32  Ram=0
+   ³  ³  ³  ÃÄ@const1598  0/32  Ram=0
    ³  ³  ³  ÃÄLCD_Cmd  0/110  Ram=2
    ³  ³  ³  ³  ÀÄ*
    ³  ³  ³  ÃÄLCD_GOTO  0/104  Ram=3
@@ -1295,8 +1293,8 @@
    ³  ³  ³  ³  ÀÄ*
    ³  ³  ³  ÃÄLCD_GOTO  0/104  Ram=3
    ³  ³  ³  ³  ÀÄ*
-   ³  ³  ³  ÃÄ@const1596  0/38  Ram=0
-   ³  ³  ³  ÃÄ@const1599  0/32  Ram=0
+   ³  ³  ³  ÃÄ@const1595  0/38  Ram=0
+   ³  ³  ³  ÃÄ@const1598  0/32  Ram=0
    ³  ³  ³  ÃÄ@PSTRINGCN_1109  0/40  Ram=3
    ³  ³  ³  ³  ÀÄ*
    ³  ³  ³  ÃÄ@PRINTF_LU_1109  0/200  Ram=9
